@@ -1,7 +1,11 @@
 const SPOT =
   ".data-card, .subcard, .sub-card, .staff-group-card, .pick-subcard, .barcode-subcard, .shift-subcard";
 
+const SVG_NS = "http://www.w3.org/2000/svg";
+
 const FIRE_COLORS = ["#fff3c4", "#ffd24a", "#ff9a1f", "#ff5a1f", "#ff2d2d"];
+const STORM_COLORS = ["#ffffff", "#dbe6ff", "#a9c2ff", "#7d9dff"];
+const SPARKLE_COLORS = ["#ffffff", "#ffd6f0", "#ff9ad5", "#e0b8ff", "#fff0a8"];
 
 const isOn = (attribute) =>
   document.documentElement.getAttribute(attribute) === "on";
@@ -12,6 +16,14 @@ const place = (element, x, y, lifetime) => {
   document.body.appendChild(element);
   window.setTimeout(() => element.remove(), lifetime);
 };
+
+const spawnFlash = (x, y, modifier = "") => {
+  const flash = document.createElement("span");
+  flash.className = `fx-flash ${modifier}`.trim();
+  place(flash, x, y, 500);
+};
+
+/* ---------- Underwater: bubbles ---------- */
 
 const spawnBubbles = (x, y) => {
   for (let i = 0; i < 14; i += 1) {
@@ -37,10 +49,10 @@ const spawnBubbles = (x, y) => {
   }
 };
 
+/* ---------- Fire: firecracker ---------- */
+
 const spawnFirecracker = (x, y) => {
-  const flash = document.createElement("span");
-  flash.className = "fx-flash";
-  place(flash, x, y, 500);
+  spawnFlash(x, y);
 
   for (let i = 0; i < 10; i += 1) {
     const streak = document.createElement("span");
@@ -75,6 +87,157 @@ const spawnFirecracker = (x, y) => {
     place(spark, x, y, 1400);
   }
 };
+
+/* ---------- Thunderstorm: lightning strike ---------- */
+
+const jaggedPoints = (x1, y1, x2, y2, segments, jitter) => {
+  const points = [[x1, y1]];
+
+  for (let i = 1; i < segments; i += 1) {
+    const t = i / segments;
+
+    points.push([
+      x1 + (x2 - x1) * t + (Math.random() - 0.5) * jitter,
+      y1 + (y2 - y1) * t + (Math.random() - 0.5) * jitter * 0.3,
+    ]);
+  }
+
+  points.push([x2, y2]);
+
+  return points;
+};
+
+const toPath = (points) =>
+  points
+    .map(
+      ([px, py], index) =>
+        `${index ? "L" : "M"}${px.toFixed(1)} ${py.toFixed(1)}`
+    )
+    .join(" ");
+
+const spawnLightning = (x, y) => {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("class", "fx-lightning");
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.setAttribute("preserveAspectRatio", "none");
+
+  const main = jaggedPoints(
+    x + (Math.random() - 0.5) * 220,
+    0,
+    x,
+    y,
+    Math.max(8, Math.round(y / 40)),
+    50
+  );
+
+  const bolts = [main];
+
+  for (let i = 0; i < 2; i += 1) {
+    const start = main[Math.floor(main.length * (0.25 + Math.random() * 0.5))];
+    const direction = Math.random() < 0.5 ? -1 : 1;
+
+    bolts.push(
+      jaggedPoints(
+        start[0],
+        start[1],
+        start[0] + direction * (40 + Math.random() * 90),
+        start[1] + 60 + Math.random() * 100,
+        5,
+        24
+      )
+    );
+  }
+
+  bolts.forEach((points, index) => {
+    const d = toPath(points);
+    const isMain = index === 0;
+
+    const glow = document.createElementNS(SVG_NS, "path");
+    glow.setAttribute("d", d);
+    glow.setAttribute("fill", "none");
+    glow.setAttribute("stroke", "rgba(140, 170, 255, 0.55)");
+    glow.setAttribute("stroke-width", isMain ? "8" : "5");
+    glow.setAttribute("stroke-linejoin", "round");
+    glow.setAttribute("stroke-linecap", "round");
+
+    const core = document.createElementNS(SVG_NS, "path");
+    core.setAttribute("d", d);
+    core.setAttribute("fill", "none");
+    core.setAttribute("stroke", "#ffffff");
+    core.setAttribute("stroke-width", isMain ? "2.5" : "1.5");
+    core.setAttribute("stroke-linejoin", "round");
+    core.setAttribute("stroke-linecap", "round");
+
+    svg.appendChild(glow);
+    svg.appendChild(core);
+  });
+
+  document.body.appendChild(svg);
+  window.setTimeout(() => svg.remove(), 800);
+
+  const screen = document.createElement("div");
+  screen.className = "fx-storm-flash";
+  document.body.appendChild(screen);
+  window.setTimeout(() => screen.remove(), 450);
+
+  spawnFlash(x, y, "fx-flash--storm");
+
+  for (let i = 0; i < 10; i += 1) {
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 20 + Math.random() * 50;
+    const size = 2 + Math.random() * 3;
+    const color = STORM_COLORS[Math.floor(Math.random() * STORM_COLORS.length)];
+    const spark = document.createElement("span");
+
+    spark.className = "fx-spark";
+    spark.style.width = `${size}px`;
+    spark.style.height = `${size}px`;
+    spark.style.marginLeft = `${-size / 2}px`;
+    spark.style.marginTop = `${-size / 2}px`;
+    spark.style.background = color;
+    spark.style.boxShadow = `0 0 8px ${color}`;
+    spark.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+    spark.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
+    spark.style.setProperty("--fall", `${10 + Math.random() * 20}px`);
+    spark.style.animationDuration = `${0.4 + Math.random() * 0.4}s`;
+
+    place(spark, x, y, 1000);
+  }
+};
+
+/* ---------- Fairy land: sparkles ---------- */
+
+const spawnSparkles = (x, y) => {
+  spawnFlash(x, y, "fx-flash--fairy");
+
+  for (let i = 0; i < 18; i += 1) {
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 30 + Math.random() * 80;
+    const size = 8 + Math.random() * 14;
+    const color =
+      SPARKLE_COLORS[Math.floor(Math.random() * SPARKLE_COLORS.length)];
+    const star = document.createElement("span");
+
+    star.className = "fx-sparkle";
+    star.style.width = `${size}px`;
+    star.style.height = `${size}px`;
+    star.style.marginLeft = `${-size / 2}px`;
+    star.style.marginTop = `${-size / 2}px`;
+    star.style.background = color;
+    star.style.filter = `drop-shadow(0 0 4px ${color})`;
+    star.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+    star.style.setProperty("--dy", `${Math.sin(angle) * distance - 24}px`);
+    star.style.setProperty("--spin", `${(Math.random() - 0.5) * 360}deg`);
+    star.style.animationDuration = `${0.8 + Math.random() * 0.7}s`;
+
+    place(star, x, y, 1700);
+  }
+};
+
+/* ---------- Setup ---------- */
 
 export function initFx3d() {
   if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
@@ -116,10 +279,13 @@ export function initFx3d() {
     const x = event.clientX;
     const y = event.clientY;
 
-    // Click effects appear at the pointer, anywhere on the page.
-        // Fire always wins, so bubbles can never appear in fire mode.
+    // Only one effect is active at a time, shown at the pointer.
     if (isOn("data-fire")) {
       spawnFirecracker(x, y);
+    } else if (isOn("data-storm")) {
+      spawnLightning(x, y);
+    } else if (isOn("data-fairy")) {
+      spawnSparkles(x, y);
     } else if (isOn("data-water")) {
       spawnBubbles(x, y);
     }

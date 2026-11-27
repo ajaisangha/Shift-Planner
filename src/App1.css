@@ -1550,3 +1550,685 @@
     100% { opacity: 0; }
   }
 }
+
+/* ==========================================================
+   EFFECT DROPDOWN
+========================================================== */
+
+.effect-select {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: 34px;
+  padding: 7px 32px 7px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.16);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.effect-select:hover {
+  background-color: rgba(255, 255, 255, 0.26);
+}
+
+.effect-select:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+}
+
+.effect-select option {
+  background: #ffffff;
+  color: #163456;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .effect-select {
+    padding: 6px 28px 6px 10px;
+  }
+}
+
+/* ==========================================================
+   THUNDERSTORM  (theme: black)
+   data-appearance="3d" + data-storm="on"
+
+   .app-container::before  dark storm tint
+   body::before / ::after  dark drifting clouds (two layers)
+   .app-container::after   rain
+   #root::before           sky flash every 11 seconds
+   #root::after            lightning bolt (changes position)
+   .header-title / ::before electric glow
+========================================================== */
+
+:root[data-appearance="3d"][data-storm="on"] .app-container::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 899;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 10, 20, 0.42) 0%,
+    rgba(15, 18, 32, 0.26) 40%,
+    rgba(10, 12, 22, 0.16) 100%
+  );
+}
+
+/* Dark clouds, main layer */
+
+:root[data-appearance="3d"][data-storm="on"] body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: calc(100vw + 900px);
+  height: 46vh;
+  z-index: 900;
+  pointer-events: none;
+  opacity: 0.85;
+  background-size: 900px 300px;
+  background-repeat: repeat-x;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='300'><filter id='c' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' baseFrequency='0.005 0.012' numOctaves='4' seed='7' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0.09 0 0 0 0 0.1 0 0 0 0 0.15 0 0 0 2.2 -0.75'/></filter><rect width='900' height='300' filter='url(%23c)'/></svg>");
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 100%);
+  animation: fxCloudA 80s linear infinite;
+}
+
+/* Lighter grey clouds, second layer, opposite direction */
+
+:root[data-appearance="3d"][data-storm="on"] body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: -600px;
+  width: calc(100vw + 600px);
+  height: 38vh;
+  z-index: 900;
+  pointer-events: none;
+  opacity: 0.5;
+  background-size: 600px 240px;
+  background-repeat: repeat-x;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='240'><filter id='c' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' baseFrequency='0.008 0.016' numOctaves='4' seed='3' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0.22 0 0 0 0 0.24 0 0 0 0 0.3 0 0 0 2.2 -0.8'/></filter><rect width='600' height='240' filter='url(%23c)'/></svg>");
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 100%);
+  animation: fxCloudB 55s linear infinite;
+}
+
+@keyframes fxCloudA {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-900px); }
+}
+
+@keyframes fxCloudB {
+  from { transform: translateX(0); }
+  to   { transform: translateX(600px); }
+}
+
+/* Rain (two speeds) */
+
+:root[data-appearance="3d"][data-storm="on"] .app-container::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 901;
+  pointer-events: none;
+  opacity: 0.5;
+  background-repeat: repeat, repeat;
+  background-size: 120px 160px, 200px 240px;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='160'><g stroke='%23cfd8f0' stroke-opacity='0.5' stroke-width='1' stroke-linecap='round'><line x1='20' y1='4' x2='13' y2='30'/><line x1='60' y1='60' x2='53' y2='86'/><line x1='95' y1='20' x2='88' y2='46'/><line x1='38' y1='110' x2='31' y2='136'/><line x1='108' y1='120' x2='101' y2='146'/></g></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='240'><g stroke='%23b9c6e6' stroke-opacity='0.4' stroke-width='1.2' stroke-linecap='round'><line x1='30' y1='10' x2='21' y2='46'/><line x1='120' y1='90' x2='111' y2='126'/><line x1='170' y1='30' x2='161' y2='66'/><line x1='70' y1='170' x2='61' y2='206'/></g></svg>");
+  animation: fxRain 0.9s linear infinite;
+}
+
+@keyframes fxRain {
+  from { background-position: 0 0, 0 0; }
+  to   { background-position: 0 160px, 0 240px; }
+}
+
+/* Sky flash */
+
+:root[data-appearance="3d"][data-storm="on"] #root::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 903;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(
+      ellipse at 50% -10%,
+      rgba(220, 232, 255, 0.65),
+      rgba(170, 190, 240, 0.25) 45%,
+      transparent 75%
+    );
+  animation: fxStormFlash 11s linear infinite;
+}
+
+/* Lightning bolt, moves to a new spot each flash */
+
+:root[data-appearance="3d"][data-storm="on"] #root::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 903;
+  pointer-events: none;
+  opacity: 0;
+  background-repeat: no-repeat;
+  background-size: 150px 65vh;
+  background-position: 72% 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='420' viewBox='0 0 150 420' preserveAspectRatio='none'><path d='M85 0 L60 120 L90 125 L45 250 L75 255 L30 420 L110 230 L80 225 L120 110 L95 105 Z' fill='%23f2f6ff'/></svg>");
+  filter: drop-shadow(0 0 10px #9db8ff) drop-shadow(0 0 24px #6f93ff);
+  animation:
+    fxStormFlash 11s linear infinite,
+    fxBoltPos 33s step-end infinite;
+}
+
+@keyframes fxStormFlash {
+  0%, 6%  { opacity: 0; }
+  7%      { opacity: 0.9; }
+  8%      { opacity: 0.15; }
+  9.5%    { opacity: 0.7; }
+  12%     { opacity: 0; }
+  100%    { opacity: 0; }
+}
+
+@keyframes fxBoltPos {
+  0%      { background-position: 72% 0; }
+  33.33%  { background-position: 18% 0; }
+  66.66%  { background-position: 48% 0; }
+}
+
+/* Header: electric edge and title glow */
+
+:root[data-appearance="3d"][data-storm="on"] .header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 3px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(160, 190, 255, 0.85),
+    rgba(255, 255, 255, 0.95),
+    rgba(160, 190, 255, 0.85),
+    transparent
+  );
+  background-size: 300% 100%;
+  animation: fxStormEdge 6s linear infinite;
+}
+
+@keyframes fxStormEdge {
+  from { background-position: 0% 0; }
+  to   { background-position: 300% 0; }
+}
+
+:root[data-appearance="3d"][data-storm="on"] .header-title {
+  animation: fxStormTitle 11s linear infinite;
+}
+
+@keyframes fxStormTitle {
+  0%, 6%, 13%, 100% {
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.14), 0 0 6px rgba(160, 190, 255, 0.2);
+  }
+  7%, 9.5% {
+    text-shadow: 0 0 18px #cfe0ff, 0 0 4px #ffffff;
+  }
+}
+
+/* ==========================================================
+   FAIRY LAND  (theme: pink)
+   data-appearance="3d" + data-fairy="on"
+
+   .app-container::before  pink and lilac glow
+   body::before / ::after  twinkling stars
+   .app-container::after   floating light orbs
+   #root::before           rolling pink hills
+   #root::after            fairy flying across the screen
+   .header::before / title shimmer
+========================================================== */
+
+:root[data-appearance="3d"][data-fairy="on"] .app-container::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 899;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 182, 225, 0.3), transparent 45%),
+    radial-gradient(circle at 85% 78%, rgba(206, 170, 255, 0.24), transparent 45%),
+    radial-gradient(circle at 55% 45%, rgba(255, 225, 242, 0.16), transparent 55%);
+  animation: fxFairyGlow 9s ease-in-out infinite alternate;
+}
+
+@keyframes fxFairyGlow {
+  from { opacity: 0.75; }
+  to   { opacity: 1; }
+}
+
+/* Twinkling stars (two layers) */
+
+:root[data-appearance="3d"][data-fairy="on"] body::before {
+  content: "";
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: calc(100vh + 400px);
+  z-index: 900;
+  pointer-events: none;
+  background-size: 400px 400px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'><defs><path id='s' d='M10 0 L12.5 7.5 L20 10 L12.5 12.5 L10 20 L7.5 12.5 L0 10 L7.5 7.5 Z'/></defs><use href='%23s' transform='translate(40 60) scale(0.9)' fill='white'/><use href='%23s' transform='translate(210 30) scale(0.6)' fill='%23ffd6f0'/><use href='%23s' transform='translate(330 120) scale(1.1)' fill='white'/><use href='%23s' transform='translate(120 210) scale(0.7)' fill='%23fff0a8'/><use href='%23s' transform='translate(290 270) scale(0.9)' fill='%23ffd6f0'/><use href='%23s' transform='translate(30 330) scale(0.6)' fill='white'/><use href='%23s' transform='translate(190 350) scale(1)' fill='white'/></svg>");
+  animation:
+    fxTwinkle 2.6s ease-in-out infinite alternate,
+    fxStarRise 70s linear infinite;
+}
+
+:root[data-appearance="3d"][data-fairy="on"] body::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: calc(100vh + 300px);
+  z-index: 900;
+  pointer-events: none;
+  background-size: 300px 300px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><defs><path id='s' d='M10 0 L12.5 7.5 L20 10 L12.5 12.5 L10 20 L7.5 12.5 L0 10 L7.5 7.5 Z'/></defs><use href='%23s' transform='translate(70 40) scale(0.6)' fill='%23ffffff'/><use href='%23s' transform='translate(230 90) scale(0.8)' fill='%23ffc2e6'/><use href='%23s' transform='translate(150 190) scale(0.5)' fill='%23fff0a8'/><use href='%23s' transform='translate(20 250) scale(0.7)' fill='%23ffffff'/></svg>");
+  animation:
+    fxTwinkle 3.4s ease-in-out 0.8s infinite alternate,
+    fxStarRiseSlow 90s linear infinite;
+}
+
+@keyframes fxTwinkle {
+  from { opacity: 0.4; }
+  to   { opacity: 1; }
+}
+
+@keyframes fxStarRise {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-400px); }
+}
+
+@keyframes fxStarRiseSlow {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-300px); }
+}
+
+/* Floating light orbs */
+
+:root[data-appearance="3d"][data-fairy="on"] .app-container::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: calc(100vh + 700px);
+  z-index: 901;
+  pointer-events: none;
+  background-size: 700px 700px;
+  background-image:
+    radial-gradient(circle 26px at 120px 560px, rgba(255, 190, 230, 0.35), transparent 70%),
+    radial-gradient(circle 18px at 330px 380px, rgba(220, 190, 255, 0.35), transparent 70%),
+    radial-gradient(circle 34px at 540px 620px, rgba(255, 200, 235, 0.3), transparent 70%),
+    radial-gradient(circle 14px at 620px 180px, rgba(255, 240, 180, 0.35), transparent 70%),
+    radial-gradient(circle 22px at 200px 120px, rgba(255, 190, 230, 0.3), transparent 70%);
+  animation: fxOrbRise 45s linear infinite;
+}
+
+@keyframes fxOrbRise {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-700px); }
+}
+
+/* Rolling pink hills */
+
+:root[data-appearance="3d"][data-fairy="on"] #root::before {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 90px;
+  z-index: 902;
+  pointer-events: none;
+  background-repeat: repeat-x, repeat-x;
+  background-position: 0 100%, 120px 100%;
+  background-size: 700px 90px, 500px 70px;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='700' height='90' viewBox='0 0 700 90'><path d='M0 60 Q 175 8 350 55 T 700 60 V90 H0 Z' fill='rgba(255,140,205,0.38)'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='500' height='70' viewBox='0 0 500 70'><path d='M0 46 Q 125 6 250 42 T 500 46 V70 H0 Z' fill='rgba(214,110,200,0.42)'/></svg>");
+  animation: fxHills 60s linear infinite;
+}
+
+@keyframes fxHills {
+  from { background-position: 0 100%, 120px 100%; }
+  to   { background-position: 700px 100%, -380px 100%; }
+}
+
+/* Fairy flying across the screen */
+
+:root[data-appearance="3d"][data-fairy="on"] #root::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 70px;
+  height: 50px;
+  z-index: 903;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='70' height='50' viewBox='0 0 70 50'><defs><radialGradient id='g'><stop offset='0' stop-color='white'/><stop offset='1' stop-color='%23ff9ad5' stop-opacity='0'/></radialGradient></defs><ellipse cx='25' cy='19' rx='17' ry='9' transform='rotate(-28 25 19)' fill='rgba(255,255,255,0.75)'/><ellipse cx='45' cy='19' rx='17' ry='9' transform='rotate(28 45 19)' fill='rgba(255,214,240,0.8)'/><circle cx='35' cy='28' r='15' fill='url(%23g)'/><circle cx='35' cy='28' r='4' fill='white'/></svg>");
+  filter: drop-shadow(0 0 8px #ff9ad5);
+  animation:
+    fxFairyFly 28s ease-in-out infinite,
+    fxFairyFlap 0.45s ease-in-out infinite alternate;
+}
+
+@keyframes fxFairyFly {
+  0%   { translate: -80px 60vh; }
+  20%  { translate: 22vw 38vh; }
+  40%  { translate: 45vw 62vh; }
+  60%  { translate: 66vw 30vh; }
+  80%  { translate: 88vw 52vh; }
+  100% { translate: calc(100vw + 80px) 40vh; }
+}
+
+@keyframes fxFairyFlap {
+  from { transform: scaleY(1) scaleX(1); }
+  to   { transform: scaleY(0.82) scaleX(0.94); }
+}
+
+/* Header shimmer and soft title glow */
+
+:root[data-appearance="3d"][data-fairy="on"] .header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 4px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 214, 240, 0.9),
+    rgba(224, 184, 255, 0.9),
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 154, 213, 0.9),
+    transparent
+  );
+  background-size: 300% 100%;
+  animation: fxFairyEdge 6s linear infinite;
+}
+
+@keyframes fxFairyEdge {
+  from { background-position: 0% 0; }
+  to   { background-position: 300% 0; }
+}
+
+:root[data-appearance="3d"][data-fairy="on"] .header-title {
+  animation: fxFairyTitle 4s ease-in-out infinite;
+}
+
+@keyframes fxFairyTitle {
+  0%, 100% {
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.14), 0 0 8px rgba(255, 190, 230, 0.4);
+  }
+  50% {
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.14), 0 0 18px rgba(255, 220, 245, 0.85);
+  }
+}
+
+@media (max-width: 760px) {
+  :root[data-appearance="3d"][data-fairy="on"] #root::before {
+    height: 64px;
+  }
+
+  :root[data-appearance="3d"][data-storm="on"] body::before {
+    height: 36vh;
+  }
+}
+
+/* ==========================================================
+   CLICK EFFECTS: LIGHTNING AND SPARKLES
+========================================================== */
+
+:root[data-storm="on"] .fx-shockwave {
+  border-color: #9db8ff;
+}
+
+:root[data-fairy="on"] .fx-shockwave {
+  border-color: #ff7ac8;
+}
+
+.fx-flash--storm {
+  background: radial-gradient(
+    circle,
+    #ffffff 0%,
+    rgba(170, 195, 255, 0.95) 25%,
+    rgba(90, 120, 255, 0.4) 55%,
+    transparent 72%
+  );
+}
+
+.fx-flash--fairy {
+  background: radial-gradient(
+    circle,
+    #ffffff 0%,
+    rgba(255, 200, 235, 0.95) 25%,
+    rgba(224, 160, 255, 0.4) 55%,
+    transparent 72%
+  );
+}
+
+/* Lightning strike from the top of the screen to the pointer */
+
+.fx-lightning {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 4500;
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px #8fb3ff) drop-shadow(0 0 14px #5f86ff);
+  animation: fxBoltStrike 0.6s ease-out forwards;
+}
+
+@keyframes fxBoltStrike {
+  0%   { opacity: 1; }
+  10%  { opacity: 0.2; }
+  20%  { opacity: 1; }
+  45%  { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+
+.fx-storm-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 4400;
+  pointer-events: none;
+  background: rgba(200, 215, 255, 0.28);
+  animation: fxStormScreen 0.4s ease-out forwards;
+}
+
+@keyframes fxStormScreen {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* Fairy sparkles: four-point stars */
+
+.fx-sparkle {
+  position: fixed;
+  z-index: 4500;
+  pointer-events: none;
+  clip-path: polygon(
+    50% 0, 62% 38%, 100% 50%, 62% 62%,
+    50% 100%, 38% 62%, 0 50%, 38% 38%
+  );
+  animation: fxSparkleBurst 1.1s ease-out forwards;
+}
+
+@keyframes fxSparkleBurst {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(0.4);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(calc(var(--dx, 0px) * 0.5), calc(var(--dy, 0px) * 0.5)) rotate(calc(var(--spin, 0deg) * 0.4)) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--spin, 0deg)) scale(0.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-lightning,
+  .fx-storm-flash,
+  .fx-sparkle {
+    animation: none !important;
+    display: none;
+  }
+}
+
+/* ==========================================================
+   FAIRY LAND — CASTLE UPGRADE
+   Overrides the earlier fairy glow and hills rules.
+
+   .app-container::before  pink/lilac glow + rainbow arc
+   #root::before           far mountains, castle, flowered hills,
+                           mushroom hills (one layered scene)
+========================================================== */
+
+/* Dreamy glow with a soft rainbow rising behind the castle */
+
+:root[data-appearance="3d"][data-fairy="on"] .app-container::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 899;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle 430px at 88% 100%,
+      transparent 0,
+      transparent 330px,
+      rgba(255, 110, 150, 0.22) 330px,
+      rgba(255, 110, 150, 0.22) 345px,
+      rgba(255, 190, 110, 0.22) 345px,
+      rgba(255, 190, 110, 0.22) 360px,
+      rgba(255, 250, 150, 0.2) 360px,
+      rgba(255, 250, 150, 0.2) 375px,
+      rgba(150, 240, 180, 0.2) 375px,
+      rgba(150, 240, 180, 0.2) 390px,
+      rgba(140, 200, 255, 0.2) 390px,
+      rgba(140, 200, 255, 0.2) 405px,
+      rgba(200, 150, 255, 0.2) 405px,
+      rgba(200, 150, 255, 0.2) 420px,
+      transparent 421px
+    ),
+    radial-gradient(circle at 18% 12%, rgba(255, 182, 225, 0.3), transparent 45%),
+    radial-gradient(circle at 85% 78%, rgba(206, 170, 255, 0.24), transparent 45%),
+    radial-gradient(circle at 55% 45%, rgba(255, 225, 242, 0.16), transparent 55%);
+  animation: fxFairyGlow 9s ease-in-out infinite alternate;
+}
+
+/* The fairy-land scene along the bottom edge.
+   Layer order, front to back:
+   1. flowered front hills   2. mushroom hills
+   3. castle                 4. far misty mountains */
+
+:root[data-appearance="3d"][data-fairy="on"] #root::before {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 300px;
+  z-index: 902;
+  pointer-events: none;
+  background-repeat: repeat-x, repeat-x, no-repeat, repeat-x;
+  background-position:
+    0 100%,
+    120px 100%,
+    88% calc(100% - 26px),
+    0 100%;
+  background-size:
+    700px 90px,
+    500px 70px,
+    clamp(150px, 15vw, 230px) auto,
+    900px 150px;
+  background-image:
+    /* 1. front hills with flowers */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='700' height='90' viewBox='0 0 700 90'><path d='M0 60 Q 175 8 350 55 T 700 60 V90 H0 Z' fill='rgba(255,140,205,0.45)'/><g fill='white'><circle cx='87' cy='39' r='2.5'/><circle cx='175' cy='31' r='3'/><circle cx='262' cy='36' r='2.5'/></g><g fill='%23ffd24a'><circle cx='87' cy='39' r='1'/><circle cx='175' cy='31' r='1.2'/><circle cx='262' cy='36' r='1'/></g></svg>"),
+    /* 2. mid hills with mushrooms */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='500' height='70' viewBox='0 0 500 70'><path d='M0 46 Q 125 6 250 42 T 500 46 V70 H0 Z' fill='rgba(214,110,200,0.5)'/><rect x='123' y='22' width='4' height='6' fill='white'/><path d='M116 23 a9 7 0 0 1 18 0 z' fill='%23ff7ac8'/><circle cx='122' cy='19' r='1.2' fill='white'/><circle cx='128' cy='18' r='1.2' fill='white'/><rect x='61' y='28' width='3' height='5' fill='white'/><path d='M56 29 a7 5 0 0 1 14 0 z' fill='%23ffa6dc'/></svg>"),
+    /* 3. castle */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='240' viewBox='0 0 200 240'><g stroke='%23b98bd9' stroke-width='1.5' stroke-linejoin='round'><rect x='20' y='140' width='36' height='80' fill='%23ffd6f0'/><rect x='144' y='140' width='36' height='80' fill='%23ffd6f0'/><rect x='56' y='170' width='88' height='50' fill='%23f3e3ff'/><rect x='70' y='110' width='60' height='110' fill='%23e9d5ff'/><polygon points='14,140 38,92 62,140' fill='%23d96cb3'/><polygon points='138,140 162,92 186,140' fill='%23d96cb3'/><polygon points='62,110 100,50 138,110' fill='%23ff9ad5'/></g><g stroke='%23b98bd9' stroke-width='1.5'><line x1='100' y1='50' x2='100' y2='26'/><line x1='38' y1='92' x2='38' y2='70'/><line x1='162' y1='92' x2='162' y2='70'/></g><polygon points='100,26 124,33 100,40' fill='%23ffd24a'/><polygon points='38,70 56,76 38,82' fill='%23ff7ac8'/><polygon points='162,70 180,76 162,82' fill='%23ff7ac8'/><g fill='%23fff3a8'><path d='M94 140 v-14 a6 6 0 0 1 12 0 v14 z'/><rect x='33' y='160' width='10' height='18' rx='5'/><rect x='157' y='160' width='10' height='18' rx='5'/><rect x='80' y='184' width='8' height='14' rx='4'/><rect x='112' y='184' width='8' height='14' rx='4'/></g><path d='M88 220 v-26 a12 12 0 0 1 24 0 v26 z' fill='%237d3c98'/><g fill='white'><path transform='translate(138 14) scale(0.6)' d='M10 0 L12.5 7.5 L20 10 L12.5 12.5 L10 20 L7.5 12.5 L0 10 L7.5 7.5 Z'/><path transform='translate(58 34) scale(0.45)' d='M10 0 L12.5 7.5 L20 10 L12.5 12.5 L10 20 L7.5 12.5 L0 10 L7.5 7.5 Z'/><path transform='translate(176 46) scale(0.4)' d='M10 0 L12.5 7.5 L20 10 L12.5 12.5 L10 20 L7.5 12.5 L0 10 L7.5 7.5 Z'/></g></svg>"),
+    /* 4. far misty mountains */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='150' viewBox='0 0 900 150'><path d='M0 150 L0 100 Q 90 40 180 95 T 360 90 Q 450 30 540 88 T 720 92 Q 810 45 900 100 L900 150 Z' fill='rgba(220,170,240,0.28)'/></svg>");
+  filter: drop-shadow(0 0 12px rgba(255, 170, 230, 0.5)) brightness(0.96);
+  animation:
+    fxHills2 60s linear infinite,
+    fxCastleGlow 6s ease-in-out infinite alternate;
+}
+
+/* Hills and mountains drift; the castle stays put */
+
+@keyframes fxHills2 {
+  from {
+    background-position:
+      0 100%,
+      120px 100%,
+      88% calc(100% - 26px),
+      0 100%;
+  }
+  to {
+    background-position:
+      700px 100%,
+      -380px 100%,
+      88% calc(100% - 26px),
+      900px 100%;
+  }
+}
+
+/* Castle and hills glow gently */
+
+@keyframes fxCastleGlow {
+  from { filter: drop-shadow(0 0 12px rgba(255, 170, 230, 0.5)) brightness(0.96); }
+  to   { filter: drop-shadow(0 0 22px rgba(255, 200, 240, 0.85)) brightness(1.1); }
+}
+
+/* Smaller scene on phones and narrow tablets */
+
+@media (max-width: 760px) {
+  :root[data-appearance="3d"][data-fairy="on"] #root::before {
+    height: 220px;
+    background-size:
+      700px 90px,
+      500px 70px,
+      clamp(110px, 28vw, 150px) auto,
+      900px 150px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-appearance="3d"][data-fairy="on"] #root::before {
+    animation: none !important;
+  }
+}

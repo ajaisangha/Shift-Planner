@@ -30,6 +30,22 @@ const CLEAR_DOCUMENTS = [
   doc(db, "totes", "baggedTotes"),
 ];
 
+const EFFECT_OPTIONS = [
+  { value: "none", label: "No effect" },
+  { value: "water", label: "Underwater" },
+  { value: "fire", label: "Fire (volcano)" },
+  { value: "storm", label: "Thunderstorm" },
+  { value: "fairy", label: "Fairy land" },
+];
+
+// Theme color applied once when an effect is picked.
+const EFFECT_THEMES = {
+  water: "blue",
+  fire: "orange",
+  storm: "black",
+  fairy: "pink",
+};
+
 function readSavedAppearance() {
   try {
     return localStorage.getItem("shift-planner-appearance") === "3d"
@@ -40,12 +56,12 @@ function readSavedAppearance() {
   }
 }
 
-// Returns "none", "water" or "fire". Only one effect can be active.
+// Returns "none", "water", "fire", "storm" or "fairy".
 function readSavedEffect() {
   try {
     const saved = localStorage.getItem("shift-planner-effect");
 
-    if (saved === "water" || saved === "fire" || saved === "none") {
+    if (saved === "none" || EFFECT_THEMES[saved]) {
       return saved;
     }
 
@@ -83,29 +99,19 @@ function Header({
 
       <div className="header-controls">
         {appearance === "3d" && (
-          <>
-            <label className="water-toggle" title="Underwater effect">
-              <input
-                type="checkbox"
-                checked={effect === "water"}
-                onChange={(event) =>
-                  onEffectChange("water", event.target.checked)
-                }
-              />
-              <span>Underwater</span>
-            </label>
-
-            <label className="water-toggle" title="Volcano fire effect">
-              <input
-                type="checkbox"
-                checked={effect === "fire"}
-                onChange={(event) =>
-                  onEffectChange("fire", event.target.checked)
-                }
-              />
-              <span>Fire</span>
-            </label>
-          </>
+          <select
+            className="effect-select"
+            value={effect}
+            onChange={(event) => onEffectChange(event.target.value)}
+            aria-label="Visual effect"
+            title="Visual effect"
+          >
+            {EFFECT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         )}
 
         <div
@@ -324,11 +330,7 @@ export default function App() {
   const [theme, setTheme] = useState(() => {
     if (readSavedAppearance() !== "3d") return "blue";
 
-    const savedEffect = readSavedEffect();
-
-    if (savedEffect === "fire") return "orange";
-
-    return "blue";
+    return EFFECT_THEMES[readSavedEffect()] || "blue";
   });
   const [isClearingAll, setIsClearingAll] = useState(false);
   const [clearAllMessage, setClearAllMessage] = useState("");
@@ -363,11 +365,13 @@ export default function App() {
   useEffect(() => {
     const root = document.documentElement;
 
-    root.removeAttribute("data-water");
-    root.removeAttribute("data-fire");
+    Object.keys(EFFECT_THEMES).forEach((name) => {
+      root.removeAttribute(`data-${name}`);
+    });
 
-    if (effect === "water") root.setAttribute("data-water", "on");
-    if (effect === "fire") root.setAttribute("data-fire", "on");
+    if (EFFECT_THEMES[effect]) {
+      root.setAttribute(`data-${effect}`, "on");
+    }
 
     try {
       localStorage.setItem("shift-planner-effect", effect);
@@ -455,14 +459,12 @@ export default function App() {
 
   // Choosing an effect sets a matching color once.
   // Changing the color afterwards does not touch the effect.
-  const handleEffectChange = (name, checked) => {
-    if (!checked) {
-      setEffect("none");
-      return;
-    }
-
+  const handleEffectChange = (name) => {
     setEffect(name);
-    setTheme(name === "water" ? "blue" : "orange");
+
+    if (EFFECT_THEMES[name]) {
+      setTheme(EFFECT_THEMES[name]);
+    }
   };
 
   const openClearDialog = () => {
