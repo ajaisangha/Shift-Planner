@@ -71,8 +71,8 @@ function Header({
 }) {
   const themeOptions = [
     { name: "blue", color: "#4a90e2" },
-    { name: "red", color: "#d9534f" },
-    { name: "yellow", color: "#d4a017" },
+    { name: "red", color: "#d32f2f" },
+    { name: "black", color: "#222222" },
     { name: "pink", color: "#d96cb3" },
     { name: "orange", color: "#f28c28" },
   ];
