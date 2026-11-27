@@ -1489,3 +1489,850 @@
     animation: none !important;
   }
 }
+
+/* ==========================================
+   3D MODE — FIRE (OPT-IN, LIGHT)
+   Active only when the header checkbox is on:
+   data-appearance="3d" + data-fire="on"
+========================================== */
+
+/* ---------- Soft heat tint, warmer toward the bottom ---------- */
+
+:root[data-appearance="3d"][data-fire="on"] .app-container::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 899;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 120, 20, 0) 0%,
+    rgba(255, 110, 20, 0.04) 55%,
+    rgba(255, 70, 0, 0.12) 100%
+  );
+}
+
+/* ---------- Flames along the bottom ---------- */
+
+:root[data-appearance="3d"][data-fire="on"] #root::before {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 90px;
+  z-index: 902;
+  pointer-events: none;
+  transform-origin: 50% 100%;
+  background-repeat: repeat-x, repeat-x;
+  background-position: 0 100%, 40px 100%;
+  background-size: 160px 90px, 110px 62px;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='90' viewBox='0 0 160 90'><path d='M0 90 C 10 60 30 50 25 20 C 45 40 50 60 60 70 C 65 50 80 40 78 10 C 100 35 105 60 115 70 C 125 55 140 45 135 25 C 150 45 155 70 160 90 Z' fill='rgba(255,100,0,0.2)'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='62' viewBox='0 0 110 62'><path d='M0 62 C 8 42 20 34 17 14 C 30 28 34 42 41 48 C 45 34 55 28 54 7 C 69 24 72 42 79 48 C 86 38 96 31 93 17 C 103 31 107 48 110 62 Z' fill='rgba(255,200,60,0.2)'/></svg>");
+  animation:
+    fxFlameFlicker 1.6s ease-in-out infinite,
+    fxFlameDrift 14s linear infinite;
+}
+
+@keyframes fxFlameFlicker {
+  0%, 100% { transform: scaleY(1) skewX(0deg); opacity: 0.85; }
+  25%      { transform: scaleY(1.07) skewX(-1.2deg); opacity: 1; }
+  50%      { transform: scaleY(0.95) skewX(1deg); opacity: 0.8; }
+  75%      { transform: scaleY(1.04) skewX(-0.6deg); opacity: 0.95; }
+}
+
+@keyframes fxFlameDrift {
+  from { background-position: 0 100%, 40px 100%; }
+  to   { background-position: 160px 100%, -70px 100%; }
+}
+
+/* ---------- Rising embers (two speeds) ---------- */
+
+:root[data-appearance="3d"][data-fire="on"] .app-container::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: calc(100vh + 700px);
+  z-index: 901;
+  pointer-events: none;
+  background-size: 700px 700px;
+  background-image:
+    radial-gradient(circle 4px at 120px 620px, rgba(255, 210, 90, 0.9), rgba(255, 120, 0, 0.45) 55%, transparent 100%),
+    radial-gradient(circle 3px at 330px 420px, rgba(255, 190, 70, 0.85), rgba(255, 110, 0, 0.4) 55%, transparent 100%),
+    radial-gradient(circle 5px at 540px 660px, rgba(255, 200, 80, 0.85), rgba(255, 100, 0, 0.4) 55%, transparent 100%),
+    radial-gradient(circle 3px at 620px 230px, rgba(255, 220, 110, 0.9), rgba(255, 120, 0, 0.4) 55%, transparent 100%),
+    radial-gradient(circle 4px at 220px 140px, rgba(255, 190, 70, 0.8), rgba(255, 90, 0, 0.4) 55%, transparent 100%);
+  animation: fxEmbersUp 22s linear infinite;
+}
+
+:root[data-appearance="3d"][data-fire="on"] body::before {
+  content: "";
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: calc(100vh + 520px);
+  z-index: 901;
+  pointer-events: none;
+  background-size: 520px 520px;
+  background-image:
+    radial-gradient(circle 3px at 70px 470px,  rgba(255, 200, 90, 0.85), rgba(255, 110, 0, 0.4) 55%, transparent 100%),
+    radial-gradient(circle 2px at 280px 180px, rgba(255, 220, 120, 0.85), rgba(255, 120, 0, 0.35) 55%, transparent 100%),
+    radial-gradient(circle 4px at 430px 360px, rgba(255, 190, 80, 0.8), rgba(255, 100, 0, 0.4) 55%, transparent 100%);
+  animation: fxEmbersUpSlow 32s linear infinite;
+}
+
+@keyframes fxEmbersUp {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-700px); }
+}
+
+@keyframes fxEmbersUpSlow {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-520px); }
+}
+
+/* ---------- Hot-metal header edge + flickering title ---------- */
+
+:root[data-appearance="3d"][data-fire="on"] .header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 4px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 190, 70, 0.85),
+    rgba(255, 90, 0, 0.9),
+    rgba(255, 190, 70, 0.85),
+    transparent
+  );
+  background-size: 300% 100%;
+  animation: fxHeatEdge 5s linear infinite;
+}
+
+@keyframes fxHeatEdge {
+  from { background-position: 0% 0; }
+  to   { background-position: 300% 0; }
+}
+
+:root[data-appearance="3d"][data-fire="on"] .header-title {
+  animation: fxTitleFlicker 3s ease-in-out infinite;
+}
+
+@keyframes fxTitleFlicker {
+  0%, 100% {
+    text-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.14),
+      0 0 8px rgba(255, 170, 60, 0.35);
+  }
+  35% {
+    text-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.14),
+      0 0 16px rgba(255, 120, 20, 0.65);
+  }
+  60% {
+    text-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.14),
+      0 0 10px rgba(255, 190, 80, 0.45);
+  }
+}
+
+/* ---------- Click: orange ring + sparks ---------- */
+
+:root[data-fire="on"] .fx-shockwave {
+  border-color: #ff8a1f;
+}
+
+.fx-spark {
+  position: fixed;
+  z-index: 4500;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    #fff3c4 0%,
+    #ffb23d 45%,
+    rgba(255, 90, 0, 0.8) 100%
+  );
+  box-shadow: 0 0 6px rgba(255, 140, 20, 0.8);
+  pointer-events: none;
+  animation: fxSparkFly 0.8s ease-out forwards;
+}
+
+@keyframes fxSparkFly {
+  from { opacity: 1; transform: translate(0, 0) scale(1); }
+  to   { opacity: 0; transform: translate(var(--dx, 0), var(--dy, -40px)) scale(0.3); }
+}
+
+/* ---------- Reduced motion: keep the warm tint, stop the movement ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-appearance="3d"][data-fire="on"] #root::before,
+  :root[data-appearance="3d"][data-fire="on"] .app-container::after,
+  :root[data-appearance="3d"][data-fire="on"] body::before,
+  :root[data-appearance="3d"][data-fire="on"] .header::before,
+  :root[data-appearance="3d"][data-fire="on"] .header-title,
+  .fx-spark {
+    animation: none !important;
+  }
+}
+
+/* ==========================================
+   CLICK EFFECTS AT THE MOUSE POINTER
+   Underwater: bubbles   |   Fire: firecracker
+========================================== */
+
+/* ---------- Bubbles ---------- */
+
+.fx-bubble {
+  position: fixed;
+  z-index: 4500;
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.9),
+    rgba(190, 240, 255, 0.25) 55%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  box-shadow:
+    0 0 8px rgba(0, 170, 230, 0.45),
+    inset 0 0 6px rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+  animation: fxBubbleFloat 1.6s ease-out forwards;
+}
+
+@keyframes fxBubbleFloat {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.4);
+  }
+  15% {
+    opacity: 1;
+  }
+  50% {
+    transform: translate(calc(var(--drift, 0px) * 0.4), calc(var(--rise, 120px) * -0.5)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--drift, 0px), calc(var(--rise, 120px) * -1)) scale(1.2);
+  }
+}
+
+/* ---------- Firecracker burst ---------- */
+
+.fx-flash {
+  position: fixed;
+  z-index: 4500;
+  width: 90px;
+  height: 90px;
+  margin: -45px 0 0 -45px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    #ffffff 0%,
+    rgba(255, 210, 90, 0.95) 25%,
+    rgba(255, 90, 0, 0.45) 55%,
+    transparent 72%
+  );
+  pointer-events: none;
+  animation: fxFlash 0.35s ease-out forwards;
+}
+
+@keyframes fxFlash {
+  from { opacity: 1; transform: scale(0.2); }
+  to   { opacity: 0; transform: scale(1.5); }
+}
+
+.fx-streak {
+  position: fixed;
+  z-index: 4500;
+  width: 2px;
+  height: 16px;
+  margin: -8px 0 0 -1px;
+  border-radius: 2px;
+  background: linear-gradient(#ffffff, #ffb23d, transparent);
+  pointer-events: none;
+  animation: fxStreak 0.5s ease-out forwards;
+}
+
+@keyframes fxStreak {
+  from {
+    opacity: 1;
+    transform: rotate(var(--ang, 0deg)) translateY(-6px);
+  }
+  to {
+    opacity: 0;
+    transform: rotate(var(--ang, 0deg)) translateY(calc(var(--len, 60px) * -1));
+  }
+}
+
+.fx-spark {
+  position: fixed;
+  z-index: 4500;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: fxSparkBurst 0.9s ease-out forwards;
+}
+
+@keyframes fxSparkBurst {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(calc(var(--dx, 0px) * 0.9), calc(var(--dy, 0px) * 0.9)) scale(0.9);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx, 0px), calc(var(--dy, 0px) + var(--fall, 40px))) scale(0.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-bubble,
+  .fx-flash,
+  .fx-streak,
+  .fx-spark {
+    animation: none !important;
+    display: none;
+  }
+}
+
+/* ==========================================================
+   EFFECT TOGGLES + UNDERWATER + VOLCANO (FIRE) + CLICK FX
+   Appended to the end of App1.css.
+   Effects need data-appearance="3d" plus data-water="on"
+   or data-fire="on" on the root element.
+========================================================== */
+
+/* ---------- Header checkboxes ---------- */
+
+.water-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.water-toggle input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #ffffff;
+  cursor: pointer;
+}
+
+.water-toggle span {
+  color: #ffffff !important;
+}
+
+.water-toggle:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.water-toggle:focus-within {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  .water-toggle {
+    padding: 6px 10px;
+  }
+}
+
+/* ==========================================================
+   UNDERWATER (light)
+========================================================== */
+
+:root[data-appearance="3d"][data-water="on"] .app-container::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 899;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 170, 200, 0.05) 0%,
+    rgba(0, 120, 175, 0.08) 60%,
+    rgba(0, 80, 140, 0.12) 100%
+  );
+}
+
+:root[data-appearance="3d"][data-water="on"] body::before {
+  content: "";
+  position: fixed;
+  top: -600px;
+  left: -600px;
+  width: calc(100vw + 600px);
+  height: calc(100vh + 600px);
+  z-index: 900;
+  pointer-events: none;
+  opacity: 0.2;
+  background-size: 600px 600px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><filter id='c' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='turbulence' baseFrequency='0.007 0.011' numOctaves='2' seed='4' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 -9 0 0 0 1.45'/></filter><rect width='600' height='600' filter='url(%23c)'/></svg>");
+  animation: fxCausticA 34s linear infinite;
+}
+
+:root[data-appearance="3d"][data-water="on"] body::after {
+  content: "";
+  position: fixed;
+  top: -420px;
+  left: 0;
+  width: calc(100vw + 420px);
+  height: calc(100vh + 420px);
+  z-index: 900;
+  pointer-events: none;
+  opacity: 0.14;
+  background-size: 420px 420px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='420' height='420'><filter id='c' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='turbulence' baseFrequency='0.01 0.014' numOctaves='2' seed='11' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0.85 0 0 0 0 1 0 0 0 0 1 -9 0 0 0 1.4'/></filter><rect width='420' height='420' filter='url(%23c)'/></svg>");
+  animation: fxCausticB 44s linear infinite;
+}
+
+@keyframes fxCausticA {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(600px, 600px); }
+}
+
+@keyframes fxCausticB {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(-420px, 420px); }
+}
+
+:root[data-appearance="3d"][data-water="on"] .app-container::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: calc(100vh + 700px);
+  z-index: 901;
+  pointer-events: none;
+  opacity: 0.7;
+  background-size: 700px 700px;
+  background-image:
+    radial-gradient(circle 11px at 90px 600px,  transparent 7px, rgba(255,255,255,0.4) 9px, transparent 11px),
+    radial-gradient(circle 7px  at 330px 380px, transparent 4px, rgba(255,255,255,0.38) 6px, transparent 7px),
+    radial-gradient(circle 12px at 560px 650px, transparent 8px, rgba(255,255,255,0.35) 10px, transparent 12px),
+    radial-gradient(circle 9px  at 170px 120px, transparent 5px, rgba(255,255,255,0.35) 7px, transparent 9px);
+  animation: fxBubblesUp 32s linear infinite;
+}
+
+@keyframes fxBubblesUp {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-700px); }
+}
+
+:root[data-appearance="3d"][data-water="on"] #root::before {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 44px;
+  z-index: 902;
+  pointer-events: none;
+  background-repeat: repeat-x, repeat-x;
+  background-position: 0 100%, 0 100%;
+  background-size: 1000px 44px, 700px 34px;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1000' height='44' viewBox='0 0 1000 44'><path d='M0 22 Q 125 4 250 22 T 500 22 T 750 22 T 1000 22 V44 H0 Z' fill='rgba(0,150,200,0.12)'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='700' height='34' viewBox='0 0 700 34'><path d='M0 18 Q 87 4 175 18 T 350 18 T 525 18 T 700 18 V34 H0 Z' fill='rgba(255,255,255,0.2)'/></svg>");
+  animation: fxWaves 18s linear infinite;
+}
+
+@keyframes fxWaves {
+  from { background-position: 0 100%, 0 100%; }
+  to   { background-position: 1000px 100%, -700px 100%; }
+}
+
+:root[data-appearance="3d"][data-water="on"] .header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 12px;
+  pointer-events: none;
+  background-repeat: repeat-x;
+  background-position: 0 100%;
+  background-size: 800px 12px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='12' viewBox='0 0 800 12'><path d='M0 6 Q 100 0 200 6 T 400 6 T 600 6 T 800 6 V12 H0 Z' fill='rgba(255,255,255,0.26)'/></svg>");
+  animation: fxHeaderWave 12s linear infinite;
+}
+
+@keyframes fxHeaderWave {
+  from { background-position: 0 100%; }
+  to   { background-position: 800px 100%; }
+}
+
+:root[data-appearance="3d"][data-water="on"] .header-title {
+  animation: fxWaterBob 6s ease-in-out infinite;
+}
+
+@keyframes fxWaterBob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2px); }
+}
+
+/* ==========================================================
+   FIRE: INSIDE A VOLCANO
+   - dark cavern vignette with a hot glow rising from below
+   - jagged rock walls with glowing cracks on both sides
+   - molten lava pool at the bottom
+   - rising embers
+========================================================== */
+
+/* Cavern: dark red edges, hot glow from the lava below */
+
+:root[data-appearance="3d"][data-fire="on"] .app-container::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 899;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse at 50% 115%,
+      rgba(255, 110, 20, 0.3) 0%,
+      rgba(255, 70, 0, 0.12) 40%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse at 50% 45%,
+      transparent 52%,
+      rgba(40, 6, 0, 0.4) 100%
+    );
+  animation: fxCavernGlow 4s ease-in-out infinite alternate;
+}
+
+@keyframes fxCavernGlow {
+  from { opacity: 0.8; }
+  to   { opacity: 1; }
+}
+
+/* Rock walls with glowing cracks, left and right */
+
+:root[data-appearance="3d"][data-fire="on"] #root::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 902;
+  pointer-events: none;
+  background-repeat: repeat-y, repeat-y;
+  background-position: left top, right top;
+  background-size: 44px 220px, 44px 220px;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='300' viewBox='0 0 60 300'><path d='M0 0 H30 L42 40 L28 90 L46 140 L30 200 L44 250 L30 300 H0 Z' fill='rgba(32,10,4,0.82)'/><path d='M30 0 L42 40 L28 90 L46 140 L30 200 L44 250 L30 300' fill='none' stroke='rgba(255,130,30,0.75)' stroke-width='2'/><path d='M12 20 L20 60 L10 110 L22 170 L12 230' fill='none' stroke='rgba(255,100,20,0.35)' stroke-width='1.5'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='300' viewBox='0 0 60 300'><path d='M60 0 H30 L18 40 L32 90 L14 140 L30 200 L16 250 L30 300 H60 Z' fill='rgba(32,10,4,0.82)'/><path d='M30 0 L18 40 L32 90 L14 140 L30 200 L16 250 L30 300' fill='none' stroke='rgba(255,130,30,0.75)' stroke-width='2'/><path d='M48 20 L40 60 L50 110 L38 170 L48 230' fill='none' stroke='rgba(255,100,20,0.35)' stroke-width='1.5'/></svg>");
+  animation: fxRockPulse 3.5s ease-in-out infinite alternate;
+}
+
+@keyframes fxRockPulse {
+  from { filter: brightness(0.9); }
+  to   { filter: brightness(1.3); }
+}
+
+/* Lava pool along the bottom */
+
+:root[data-appearance="3d"][data-fire="on"] #root::before {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 64px;
+  z-index: 902;
+  pointer-events: none;
+  background-repeat: repeat-x, no-repeat;
+  background-position: 0 0, 0 0;
+  background-size: 400px 30px, 100% 100%;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='30' viewBox='0 0 400 30'><path d='M0 18 Q 50 4 100 18 T 200 18 T 300 18 T 400 18 V30 H0 Z' fill='rgba(255,130,20,0.8)'/></svg>"),
+    linear-gradient(
+      180deg,
+      transparent 0,
+      transparent 24px,
+      rgba(255, 120, 15, 0.8) 30px,
+      rgba(200, 40, 0, 0.88) 60%,
+      rgba(110, 12, 0, 0.95) 100%
+    );
+  box-shadow: 0 -18px 50px rgba(255, 90, 0, 0.4);
+  animation:
+    fxLavaDrift 12s linear infinite,
+    fxLavaGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes fxLavaDrift {
+  from { background-position: 0 0, 0 0; }
+  to   { background-position: 400px 0, 0 0; }
+}
+
+@keyframes fxLavaGlow {
+  from { filter: brightness(0.9); }
+  to   { filter: brightness(1.25); }
+}
+
+/* Rising embers (two speeds) */
+
+:root[data-appearance="3d"][data-fire="on"] .app-container::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: calc(100vh + 700px);
+  z-index: 901;
+  pointer-events: none;
+  background-size: 700px 700px;
+  background-image:
+    radial-gradient(circle 4px at 120px 620px, rgba(255, 210, 90, 0.9), rgba(255, 120, 0, 0.45) 55%, transparent 100%),
+    radial-gradient(circle 3px at 330px 420px, rgba(255, 190, 70, 0.85), rgba(255, 110, 0, 0.4) 55%, transparent 100%),
+    radial-gradient(circle 5px at 540px 660px, rgba(255, 200, 80, 0.85), rgba(255, 100, 0, 0.4) 55%, transparent 100%),
+    radial-gradient(circle 3px at 620px 230px, rgba(255, 220, 110, 0.9), rgba(255, 120, 0, 0.4) 55%, transparent 100%),
+    radial-gradient(circle 4px at 220px 140px, rgba(255, 190, 70, 0.8), rgba(255, 90, 0, 0.4) 55%, transparent 100%);
+  animation: fxEmbersUp 22s linear infinite;
+}
+
+:root[data-appearance="3d"][data-fire="on"] body::before {
+  content: "";
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: calc(100vh + 520px);
+  z-index: 901;
+  pointer-events: none;
+  background-size: 520px 520px;
+  background-image:
+    radial-gradient(circle 3px at 70px 470px,  rgba(255, 200, 90, 0.85), rgba(255, 110, 0, 0.4) 55%, transparent 100%),
+    radial-gradient(circle 2px at 280px 180px, rgba(255, 220, 120, 0.85), rgba(255, 120, 0, 0.35) 55%, transparent 100%),
+    radial-gradient(circle 4px at 430px 360px, rgba(255, 190, 80, 0.8), rgba(255, 100, 0, 0.4) 55%, transparent 100%);
+  animation: fxEmbersUpSlow 32s linear infinite;
+}
+
+@keyframes fxEmbersUp {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-700px); }
+}
+
+@keyframes fxEmbersUpSlow {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-520px); }
+}
+
+/* Hot-metal header edge + flickering title */
+
+:root[data-appearance="3d"][data-fire="on"] .header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 4px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 190, 70, 0.85),
+    rgba(255, 90, 0, 0.9),
+    rgba(255, 190, 70, 0.85),
+    transparent
+  );
+  background-size: 300% 100%;
+  animation: fxHeatEdge 5s linear infinite;
+}
+
+@keyframes fxHeatEdge {
+  from { background-position: 0% 0; }
+  to   { background-position: 300% 0; }
+}
+
+:root[data-appearance="3d"][data-fire="on"] .header-title {
+  animation: fxTitleFlicker 3s ease-in-out infinite;
+}
+
+@keyframes fxTitleFlicker {
+  0%, 100% {
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.14), 0 0 8px rgba(255, 170, 60, 0.35);
+  }
+  35% {
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.14), 0 0 16px rgba(255, 120, 20, 0.65);
+  }
+  60% {
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.14), 0 0 10px rgba(255, 190, 80, 0.45);
+  }
+}
+
+@media (max-width: 760px) {
+  :root[data-appearance="3d"][data-fire="on"] #root::after {
+    background-size: 28px 140px, 28px 140px;
+  }
+
+  :root[data-appearance="3d"][data-fire="on"] #root::before {
+    height: 48px;
+  }
+}
+
+/* ==========================================================
+   CLICK EFFECTS AT THE MOUSE POINTER
+   Underwater: bubbles   |   Fire: firecracker
+========================================================== */
+
+.fx-shockwave {
+  position: fixed;
+  z-index: 4500;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 3px solid var(--theme-main, #4a90e2);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: fxShockwave 0.7s ease-out forwards;
+}
+
+:root[data-fire="on"] .fx-shockwave {
+  border-color: #ff8a1f;
+}
+
+@keyframes fxShockwave {
+  from { opacity: 0.9; transform: scale(0.3); }
+  to   { opacity: 0;   transform: scale(4); }
+}
+
+/* Bubbles */
+
+.fx-bubble {
+  position: fixed;
+  z-index: 4500;
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.9),
+    rgba(190, 240, 255, 0.25) 55%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  box-shadow:
+    0 0 8px rgba(0, 170, 230, 0.45),
+    inset 0 0 6px rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+  animation: fxBubbleFloat 1.6s ease-out forwards;
+}
+
+@keyframes fxBubbleFloat {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.4);
+  }
+  15% {
+    opacity: 1;
+  }
+  50% {
+    transform: translate(calc(var(--drift, 0px) * 0.4), calc(var(--rise, 120px) * -0.5)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--drift, 0px), calc(var(--rise, 120px) * -1)) scale(1.2);
+  }
+}
+
+/* Firecracker burst */
+
+.fx-flash {
+  position: fixed;
+  z-index: 4500;
+  width: 90px;
+  height: 90px;
+  margin: -45px 0 0 -45px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    #ffffff 0%,
+    rgba(255, 210, 90, 0.95) 25%,
+    rgba(255, 90, 0, 0.45) 55%,
+    transparent 72%
+  );
+  pointer-events: none;
+  animation: fxFlash 0.35s ease-out forwards;
+}
+
+@keyframes fxFlash {
+  from { opacity: 1; transform: scale(0.2); }
+  to   { opacity: 0; transform: scale(1.5); }
+}
+
+.fx-streak {
+  position: fixed;
+  z-index: 4500;
+  width: 2px;
+  height: 16px;
+  margin: -8px 0 0 -1px;
+  border-radius: 2px;
+  background: linear-gradient(#ffffff, #ffb23d, transparent);
+  pointer-events: none;
+  animation: fxStreak 0.5s ease-out forwards;
+}
+
+@keyframes fxStreak {
+  from {
+    opacity: 1;
+    transform: rotate(var(--ang, 0deg)) translateY(-6px);
+  }
+  to {
+    opacity: 0;
+    transform: rotate(var(--ang, 0deg)) translateY(calc(var(--len, 60px) * -1));
+  }
+}
+
+.fx-spark {
+  position: fixed;
+  z-index: 4500;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: fxSparkBurst 0.9s ease-out forwards;
+}
+
+@keyframes fxSparkBurst {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(calc(var(--dx, 0px) * 0.9), calc(var(--dy, 0px) * 0.9)) scale(0.9);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx, 0px), calc(var(--dy, 0px) + var(--fall, 40px))) scale(0.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-bubble,
+  .fx-flash,
+  .fx-streak,
+  .fx-spark,
+  .fx-shockwave {
+    animation: none !important;
+    display: none;
+  }
+}

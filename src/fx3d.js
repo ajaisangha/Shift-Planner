@@ -1,6 +1,81 @@
 const SPOT =
   ".data-card, .subcard, .sub-card, .staff-group-card, .pick-subcard, .barcode-subcard, .shift-subcard";
 
+const FIRE_COLORS = ["#fff3c4", "#ffd24a", "#ff9a1f", "#ff5a1f", "#ff2d2d"];
+
+const isOn = (attribute) =>
+  document.documentElement.getAttribute(attribute) === "on";
+
+const place = (element, x, y, lifetime) => {
+  element.style.left = `${x}px`;
+  element.style.top = `${y}px`;
+  document.body.appendChild(element);
+  window.setTimeout(() => element.remove(), lifetime);
+};
+
+const spawnBubbles = (x, y) => {
+  for (let i = 0; i < 14; i += 1) {
+    const size = 6 + Math.random() * 18;
+    const bubble = document.createElement("span");
+
+    bubble.className = "fx-bubble";
+    bubble.style.width = `${size}px`;
+    bubble.style.height = `${size}px`;
+    bubble.style.marginLeft = `${-size / 2}px`;
+    bubble.style.marginTop = `${-size / 2}px`;
+    bubble.style.setProperty("--drift", `${(Math.random() - 0.5) * 90}px`);
+    bubble.style.setProperty("--rise", `${90 + Math.random() * 110}px`);
+    bubble.style.animationDuration = `${1.1 + Math.random() * 1.1}s`;
+    bubble.style.animationDelay = `${Math.random() * 0.15}s`;
+
+    place(
+      bubble,
+      x + (Math.random() - 0.5) * 30,
+      y + (Math.random() - 0.5) * 10,
+      2600
+    );
+  }
+};
+
+const spawnFirecracker = (x, y) => {
+  const flash = document.createElement("span");
+  flash.className = "fx-flash";
+  place(flash, x, y, 500);
+
+  for (let i = 0; i < 10; i += 1) {
+    const streak = document.createElement("span");
+    streak.className = "fx-streak";
+    streak.style.setProperty(
+      "--ang",
+      `${(360 / 10) * i + Math.random() * 20}deg`
+    );
+    streak.style.setProperty("--len", `${45 + Math.random() * 45}px`);
+    place(streak, x, y, 700);
+  }
+
+  for (let i = 0; i < 28; i += 1) {
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 40 + Math.random() * 90;
+    const size = 2 + Math.random() * 4;
+    const color = FIRE_COLORS[Math.floor(Math.random() * FIRE_COLORS.length)];
+    const spark = document.createElement("span");
+
+    spark.className = "fx-spark";
+    spark.style.width = `${size}px`;
+    spark.style.height = `${size}px`;
+    spark.style.marginLeft = `${-size / 2}px`;
+    spark.style.marginTop = `${-size / 2}px`;
+    spark.style.background = color;
+    spark.style.boxShadow = `0 0 6px ${color}`;
+    spark.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+    spark.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
+    spark.style.setProperty("--fall", `${30 + Math.random() * 40}px`);
+    spark.style.animationDuration = `${0.6 + Math.random() * 0.6}s`;
+
+    place(spark, x, y, 1400);
+  }
+};
+
 export function initFx3d() {
   if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
     return () => {};
@@ -37,38 +112,27 @@ export function initFx3d() {
     });
   };
 
-const spawnBubbles = (x, y) => {
-  if (document.documentElement.getAttribute("data-water") !== "on") return;
-
-  for (let i = 0; i < 7; i += 1) {
-
-const spawnBubbles = (x, y) => {
-  for (let i = 0; i < 7; i += 1) {
-    const bubble = document.createElement("span");
-    const size = 5 + Math.random() * 9;
-
-    bubble.className = "fx-bubble";
-    bubble.style.width = `${size}px`;
-    bubble.style.height = `${size}px`;
-    bubble.style.left = `${x + (Math.random() - 0.5) * 36}px`;
-    bubble.style.top = `${y + (Math.random() - 0.5) * 12}px`;
-    bubble.style.setProperty("--drift", `${(Math.random() - 0.5) * 50}px`);
-    bubble.style.animationDuration = `${0.9 + Math.random() * 0.8}s`;
-
-    document.body.appendChild(bubble);
-    window.setTimeout(() => bubble.remove(), 1800);
-  }
-};
-
   const onDown = (event) => {
+    const x = event.clientX;
+    const y = event.clientY;
+
+    // Click effects appear at the pointer, anywhere on the page.
+        // Fire always wins, so bubbles can never appear in fire mode.
+    if (isOn("data-fire")) {
+      spawnFirecracker(x, y);
+    } else if (isOn("data-water")) {
+      spawnBubbles(x, y);
+    }
+
+    // Ripple + ring only when a button is pressed.
     const button =
       event.target instanceof Element ? event.target.closest("button") : null;
 
     if (!button || button.disabled) return;
 
     const rect = button.getBoundingClientRect();
-    button.style.setProperty("--rx", `${event.clientX - rect.left}px`);
-    button.style.setProperty("--ry", `${event.clientY - rect.top}px`);
+    button.style.setProperty("--rx", `${x - rect.left}px`);
+    button.style.setProperty("--ry", `${y - rect.top}px`);
 
     button.classList.remove("fx-ripple");
     void button.offsetWidth;
@@ -77,11 +141,7 @@ const spawnBubbles = (x, y) => {
 
     const ring = document.createElement("div");
     ring.className = "fx-shockwave";
-    ring.style.left = `${event.clientX}px`;
-    ring.style.top = `${event.clientY}px`;
-    document.body.appendChild(ring);
-    spawnBubbles(event.clientX, event.clientY);
-    window.setTimeout(() => ring.remove(), 750);
+    place(ring, x, y, 750);
   };
 
   window.addEventListener("pointermove", onMove, { passive: true });

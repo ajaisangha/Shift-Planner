@@ -30,13 +30,44 @@ const CLEAR_DOCUMENTS = [
   doc(db, "totes", "baggedTotes"),
 ];
 
+function readSavedAppearance() {
+  try {
+    return localStorage.getItem("shift-planner-appearance") === "3d"
+      ? "3d"
+      : "2d";
+  } catch {
+    return "2d";
+  }
+}
+
+// Returns "none", "water" or "fire". Only one effect can be active.
+function readSavedEffect() {
+  try {
+    const saved = localStorage.getItem("shift-planner-effect");
+
+    if (saved === "water" || saved === "fire" || saved === "none") {
+      return saved;
+    }
+
+    // Migrate from the older separate checkbox keys.
+    if (localStorage.getItem("shift-planner-fire") === "on") return "fire";
+    if (localStorage.getItem("shift-planner-underwater") === "on") {
+      return "water";
+    }
+
+    return "none";
+  } catch {
+    return "none";
+  }
+}
+
 function Header({
   theme,
   setTheme,
   appearance,
   setAppearance,
-  underwater,
-  setUnderwater,
+  effect,
+  onEffectChange,
 }) {
   const themeOptions = [
     { name: "blue", color: "#4a90e2" },
@@ -52,14 +83,29 @@ function Header({
 
       <div className="header-controls">
         {appearance === "3d" && (
-          <label className="water-toggle" title="Turn the underwater effect on or off">
-            <input
-              type="checkbox"
-              checked={underwater}
-              onChange={(event) => setUnderwater(event.target.checked)}
-            />
-            <span>Underwater</span>
-          </label>
+          <>
+            <label className="water-toggle" title="Underwater effect">
+              <input
+                type="checkbox"
+                checked={effect === "water"}
+                onChange={(event) =>
+                  onEffectChange("water", event.target.checked)
+                }
+              />
+              <span>Underwater</span>
+            </label>
+
+            <label className="water-toggle" title="Volcano fire effect">
+              <input
+                type="checkbox"
+                checked={effect === "fire"}
+                onChange={(event) =>
+                  onEffectChange("fire", event.target.checked)
+                }
+              />
+              <span>Fire</span>
+            </label>
+          </>
         )}
 
         <div
@@ -273,15 +319,16 @@ export default function App() {
   });
 
   const [slideIndex, setSlideIndex] = useState(0);
-  const [theme, setTheme] = useState("blue");
-  const [appearance, setAppearance] = useState(() => {
-    try {
-      return localStorage.getItem("shift-planner-appearance") === "3d"
-        ? "3d"
-        : "2d";
-    } catch {
-      return "2d";
-    }
+  const [appearance, setAppearance] = useState(readSavedAppearance);
+  const [effect, setEffect] = useState(readSavedEffect);
+  const [theme, setTheme] = useState(() => {
+    if (readSavedAppearance() !== "3d") return "blue";
+
+    const savedEffect = readSavedEffect();
+
+    if (savedEffect === "fire") return "orange";
+
+    return "blue";
   });
   const [isClearingAll, setIsClearingAll] = useState(false);
   const [clearAllMessage, setClearAllMessage] = useState("");
@@ -307,38 +354,27 @@ export default function App() {
     }
   }, [appearance]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (appearance !== "3d") return undefined;
 
     return initFx3d();
   }, [appearance]);
 
-  const [underwater, setUnderwater] = useState(() => {
-    try {
-      return localStorage.getItem("shift-planner-underwater") === "on";
-    } catch {
-      return false;
-    }
-  });
-
-    useEffect(() => {
+  useEffect(() => {
     const root = document.documentElement;
 
-    if (underwater) {
-      root.setAttribute("data-water", "on");
-    } else {
-      root.removeAttribute("data-water");
-    }
+    root.removeAttribute("data-water");
+    root.removeAttribute("data-fire");
+
+    if (effect === "water") root.setAttribute("data-water", "on");
+    if (effect === "fire") root.setAttribute("data-fire", "on");
 
     try {
-      localStorage.setItem(
-        "shift-planner-underwater",
-        underwater ? "on" : "off"
-      );
+      localStorage.setItem("shift-planner-effect", effect);
     } catch {
       // The effect still works if browser storage is unavailable.
     }
-  }, [underwater]);
+  }, [effect]);
 
   useEffect(() => {
     rowsRef.current = rows;
@@ -416,6 +452,18 @@ export default function App() {
       }
     };
   }, [clearAllMessage]);
+
+  // Choosing an effect sets a matching color once.
+  // Changing the color afterwards does not touch the effect.
+  const handleEffectChange = (name, checked) => {
+    if (!checked) {
+      setEffect("none");
+      return;
+    }
+
+    setEffect(name);
+    setTheme(name === "water" ? "blue" : "orange");
+  };
 
   const openClearDialog = () => {
     if (clearInProgressRef.current) return;
@@ -686,13 +734,13 @@ export default function App() {
 
   return (
     <div className="app-container">
-            <Header
+      <Header
         theme={theme}
         setTheme={setTheme}
         appearance={appearance}
         setAppearance={setAppearance}
-        underwater={underwater}
-        setUnderwater={setUnderwater}
+        effect={effect}
+        onEffectChange={handleEffectChange}
       />
 
       <main className="app-main">
