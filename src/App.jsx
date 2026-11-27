@@ -36,6 +36,7 @@ const EFFECT_OPTIONS = [
   { value: "fire", label: "Fire (volcano)" },
   { value: "storm", label: "Thunderstorm" },
   { value: "fairy", label: "Fairy land" },
+  { value: "christmas", label: "Christmas" },
 ];
 
 // Theme color applied once when an effect is picked.
@@ -44,6 +45,7 @@ const EFFECT_THEMES = {
   fire: "orange",
   storm: "black",
   fairy: "pink",
+  christmas: "red",
 };
 
 function readSavedAppearance() {

@@ -6,6 +6,7 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 const FIRE_COLORS = ["#fff3c4", "#ffd24a", "#ff9a1f", "#ff5a1f", "#ff2d2d"];
 const STORM_COLORS = ["#ffffff", "#dbe6ff", "#a9c2ff", "#7d9dff"];
 const SPARKLE_COLORS = ["#ffffff", "#ffd6f0", "#ff9ad5", "#e0b8ff", "#fff0a8"];
+const XMAS_COLORS = ["#ff3b3b", "#ffd24a", "#30c46c", "#ffffff", "#6fa8ff"];
 
 const isOn = (attribute) =>
   document.documentElement.getAttribute(attribute) === "on";
@@ -237,6 +238,165 @@ const spawnSparkles = (x, y) => {
   }
 };
 
+/* ---------- Christmas: pop-up gift box ---------- */
+
+const GIFT_COLORS = [
+  { gift: "#d32f2f", ribbon: "#ffd24a" },
+  { gift: "#2e8b57", ribbon: "#ff4d4d" },
+  { gift: "#1e6fd9", ribbon: "#ffffff" },
+  { gift: "#ffffff", ribbon: "#d32f2f" },
+  { gift: "#8e44ad", ribbon: "#ffd24a" },
+];
+
+const CONFETTI_COLORS = [
+  "#ff4d4d",
+  "#ffd24a",
+  "#2ecc71",
+  "#4da3ff",
+  "#ffffff",
+  "#ff9ad5",
+];
+
+const spawnGift = (x, y) => {
+  const palette = GIFT_COLORS[Math.floor(Math.random() * GIFT_COLORS.length)];
+  const duration = 1500;
+
+  const ribbonBand = (ribbon, base) =>
+    `linear-gradient(90deg, transparent 42%, ${ribbon} 42%, ${ribbon} 58%, transparent 58%), ${base}`;
+
+  /* Gift container */
+  const gift = document.createElement("div");
+  Object.assign(gift.style, {
+    position: "fixed",
+    zIndex: "4500",
+    width: "44px",
+    height: "44px",
+    margin: "-22px 0 0 -22px",
+    pointerEvents: "none",
+    transformOrigin: "50% 100%",
+  });
+
+  /* Box */
+  const box = document.createElement("span");
+  Object.assign(box.style, {
+    position: "absolute",
+    display: "block",
+    left: "4px",
+    right: "4px",
+    bottom: "0",
+    height: "28px",
+    borderRadius: "3px",
+    background: ribbonBand(palette.ribbon, palette.gift),
+    boxShadow:
+      "inset 0 -5px 0 rgba(0,0,0,0.18), 0 4px 8px rgba(0,0,0,0.25)",
+  });
+
+  /* Lid */
+  const lid = document.createElement("span");
+  Object.assign(lid.style, {
+    position: "absolute",
+    display: "block",
+    left: "0",
+    right: "0",
+    bottom: "26px",
+    height: "12px",
+    borderRadius: "3px",
+    background: ribbonBand(palette.ribbon, palette.gift),
+    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+    transformOrigin: "0 100%",
+  });
+
+  /* Bow on the lid */
+  const bow = document.createElement("span");
+  Object.assign(bow.style, {
+    position: "absolute",
+    display: "block",
+    left: "50%",
+    top: "-9px",
+    width: "20px",
+    height: "11px",
+    marginLeft: "-10px",
+    background: `radial-gradient(circle at 25% 65%, ${palette.ribbon} 0 5px, transparent 5.5px), radial-gradient(circle at 75% 65%, ${palette.ribbon} 0 5px, transparent 5.5px)`,
+  });
+
+  lid.appendChild(bow);
+  gift.appendChild(lid);
+  gift.appendChild(box);
+  place(gift, x, y, duration + 300);
+
+  /* Pop up, hold, float up and fade */
+  gift.animate(
+    [
+      { opacity: 1, transform: "translateY(10px) scale(0)", offset: 0 },
+      { opacity: 1, transform: "translateY(-6px) scale(1.25)", offset: 0.2 },
+      { opacity: 1, transform: "translateY(0) scale(1)", offset: 0.32 },
+      { opacity: 1, transform: "translateY(-4px) scale(1)", offset: 0.75 },
+      { opacity: 0, transform: "translateY(-28px) scale(0.9)", offset: 1 },
+    ],
+    { duration, easing: "ease-out", fill: "forwards" }
+  );
+
+  /* Lid flips open */
+  lid.animate(
+    [
+      { transform: "translate(0px, 0px) rotate(0deg)", offset: 0 },
+      { transform: "translate(0px, 0px) rotate(0deg)", offset: 0.3 },
+      { transform: "translate(-6px, -22px) rotate(-28deg)", offset: 0.48 },
+      { transform: "translate(-12px, -34px) rotate(-42deg)", offset: 1 },
+    ],
+    { duration, easing: "ease-out", fill: "forwards" }
+  );
+
+  /* Confetti bursts out when the lid opens */
+  for (let i = 0; i < 18; i += 1) {
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.3;
+    const distance = 40 + Math.random() * 80;
+    const dx = Math.cos(angle) * distance;
+    const dy = Math.sin(angle) * distance;
+    const spin = (Math.random() - 0.5) * 720;
+    const color =
+      CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+
+    const piece = document.createElement("span");
+    Object.assign(piece.style, {
+      position: "fixed",
+      zIndex: "4500",
+      display: "block",
+      width: `${4 + Math.random() * 4}px`,
+      height: `${8 + Math.random() * 5}px`,
+      borderRadius: "1px",
+      background: color,
+      pointerEvents: "none",
+      opacity: "0",
+    });
+
+    place(piece, x, y - 12, 2400);
+
+    piece.animate(
+      [
+        { opacity: 0, transform: "translate(0px, 0px) rotate(0deg)", offset: 0 },
+        { opacity: 1, transform: "translate(0px, 0px) rotate(0deg)", offset: 0.1 },
+        {
+          opacity: 1,
+          transform: `translate(${dx}px, ${dy}px) rotate(${spin * 0.6}deg)`,
+          offset: 0.55,
+        },
+        {
+          opacity: 0,
+          transform: `translate(${dx}px, ${dy + 60}px) rotate(${spin}deg)`,
+          offset: 1,
+        },
+      ],
+      {
+        duration: 900 + Math.random() * 600,
+        delay: 350,
+        easing: "ease-out",
+        fill: "both",
+      }
+    );
+  }
+};
+
 /* ---------- Setup ---------- */
 
 export function initFx3d() {
@@ -279,13 +439,15 @@ export function initFx3d() {
     const x = event.clientX;
     const y = event.clientY;
 
-    // Only one effect is active at a time, shown at the pointer.
+        // Only one effect is active at a time, shown at the pointer.
     if (isOn("data-fire")) {
       spawnFirecracker(x, y);
     } else if (isOn("data-storm")) {
       spawnLightning(x, y);
     } else if (isOn("data-fairy")) {
       spawnSparkles(x, y);
+    } else if (isOn("data-christmas")) {
+      spawnGift(x, y);
     } else if (isOn("data-water")) {
       spawnBubbles(x, y);
     }
