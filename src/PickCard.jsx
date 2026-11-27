@@ -3,6 +3,7 @@ import { db } from "./firebase";
 import { doc, setDoc, onSnapshot } from "firebase/firestore";
 import "./App.css";
 import "./pick.css";
+import ToastPortal from "./ToastPortal";
 
 const PICK_DOC = doc(db, "totes", "pickCalculator");
 
@@ -518,7 +519,7 @@ export default function PickAndBaggedCombinedCard() {
         </div>
       </div>
 
-      {toast.show && <div className="toast-notification-center">{toast.message}</div>}
+            {toast.show && <ToastPortal message={toast.message} />}
     </section>
   );
 }

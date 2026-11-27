@@ -3,6 +3,7 @@ import JsBarcode from "jsbarcode";
 import { doc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import "./barcode.css";
+import ToastPortal from "./ToastPortal";
 
 const BARCODE_DOC = doc(db, "totes", "barcodeGenerator");
 
@@ -339,9 +340,7 @@ export default function BarcodeCard() {
         </div>
       </div>
 
-      {toast.show && (
-        <div className="toast-notification-center">{toast.message}</div>
-      )}
+            {toast.show && <ToastPortal message={toast.message} />}
     </section>
   );
 }

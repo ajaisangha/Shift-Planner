@@ -457,20 +457,77 @@
 }
 
 /* ==========================================
-   TOAST
+   TOAST — SAVE / CALCULATE / CLEAR / DELETE
+
+   One shared class is used by every slide:
+   .toast-notification-center
+
+   This block is self-contained so the toast
+   shows in 3D exactly as it does in 2D:
+   centered on screen, above everything,
+   fades in, holds, then fades out.
 ========================================== */
 
 :root[data-appearance="3d"] .toast-notification-center {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  z-index: 5000 !important;
+
+  display: block;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  margin: 0;
+  padding: 14px 26px;
+
   border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 14px;
+
   background: linear-gradient(
     145deg,
     var(--theme-header-start),
     var(--theme-dark)
-  );
+  ) !important;
+
+  color: #ffffff !important;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.35),
     0 5px 0 var(--theme-dark),
     0 20px 36px rgba(0, 0, 0, 0.25);
+
+  transform: translate(-50%, -50%);
+  animation: slideFadeCenter3d 2s ease forwards !important;
+}
+
+@keyframes slideFadeCenter3d {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -40%) scale(0.96);
+  }
+
+  10% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  90% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -60%) scale(0.98);
+  }
 }
 
 /* ==========================================
@@ -511,6 +568,11 @@
   :root[data-appearance="3d"] .data-card {
     border-radius: 16px;
   }
+
+  :root[data-appearance="3d"] .toast-notification-center {
+    padding: 12px 18px;
+    font-size: 14px;
+  }
 }
 
 /* ==========================================
@@ -528,6 +590,30 @@
   :root[data-appearance="3d"] button:hover,
   :root[data-appearance="3d"] button:active {
     transform: none;
+  }
+
+  /* Toasts must still disappear: fade only, no movement. */
+
+  :root[data-appearance="3d"] .toast-notification-center {
+    animation: slideFadeCenter3dReduced 2s linear forwards !important;
+  }
+
+  @keyframes slideFadeCenter3dReduced {
+    0% {
+      opacity: 0;
+    }
+
+    10% {
+      opacity: 1;
+    }
+
+    90% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+    }
   }
 }
 
@@ -613,4 +699,55 @@
   :root[data-appearance="3d"] .slide-scroll-area {
     overflow: visible;
   }
+}
+
+/* ==========================================
+   3D BUTTON CLICK RELIABILITY FIX
+
+   Buttons no longer lift on hover, and an
+   invisible hit area keeps the cursor on the
+   button while it is pressed.
+========================================== */
+
+:root[data-appearance="3d"] .calculate-btn,
+:root[data-appearance="3d"] .save-btn,
+:root[data-appearance="3d"] .primary-btn,
+:root[data-appearance="3d"] .clear-btn,
+:root[data-appearance="3d"] .sidebar-clear-all-btn,
+:root[data-appearance="3d"] .barcode-only-copy-btn,
+:root[data-appearance="3d"] .carousel-links button {
+  position: relative;
+}
+
+:root[data-appearance="3d"] .calculate-btn::after,
+:root[data-appearance="3d"] .save-btn::after,
+:root[data-appearance="3d"] .primary-btn::after,
+:root[data-appearance="3d"] .clear-btn::after,
+:root[data-appearance="3d"] .sidebar-clear-all-btn::after,
+:root[data-appearance="3d"] .barcode-only-copy-btn::after,
+:root[data-appearance="3d"] .carousel-links button::after {
+  content: "";
+  position: absolute;
+  inset: -6px -2px;
+  background: transparent;
+}
+
+:root[data-appearance="3d"] .calculate-btn:hover:not(:disabled),
+:root[data-appearance="3d"] .save-btn:hover:not(:disabled),
+:root[data-appearance="3d"] .primary-btn:hover:not(:disabled),
+:root[data-appearance="3d"] .clear-btn:hover:not(:disabled),
+:root[data-appearance="3d"] .sidebar-clear-all-btn:hover:not(:disabled),
+:root[data-appearance="3d"] .barcode-only-copy-btn:hover:not(:disabled),
+:root[data-appearance="3d"] .carousel-links button:hover {
+  transform: none;
+}
+
+:root[data-appearance="3d"] .calculate-btn:active:not(:disabled),
+:root[data-appearance="3d"] .save-btn:active:not(:disabled),
+:root[data-appearance="3d"] .primary-btn:active:not(:disabled),
+:root[data-appearance="3d"] .clear-btn:active:not(:disabled),
+:root[data-appearance="3d"] .sidebar-clear-all-btn:active:not(:disabled),
+:root[data-appearance="3d"] .barcode-only-copy-btn:active:not(:disabled),
+:root[data-appearance="3d"] .carousel-links button:active {
+  transform: translateY(2px);
 }

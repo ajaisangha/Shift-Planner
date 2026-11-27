@@ -3,6 +3,7 @@ import { db } from "./firebase";
 import { doc, onSnapshot, setDoc } from "firebase/firestore";
 import "./App.css";
 import "./frameloadfreezer.css";
+import ToastPortal from "./ToastPortal";
 
 const FREEZER_DOC = doc(db, "totes", "freezerCalc");
 
@@ -629,9 +630,7 @@ export default function FrameloadFreezer({ grandTotals }) {
         </div>
       </div>
 
-      {toast.show && (
-        <div className="toast-notification-center">{toast.message}</div>
-      )}
+      {toast.show && <ToastPortal message={toast.message} />}
     </section>
   );
 }

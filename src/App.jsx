@@ -253,18 +253,17 @@ export default function App() {
     total: 0,
   });
 
-  const [duplicateMessage, setDuplicateMessage] = useState("");
   const [slideIndex, setSlideIndex] = useState(0);
   const [theme, setTheme] = useState("blue");
   const [appearance, setAppearance] = useState(() => {
-  try {
-    return localStorage.getItem("shift-planner-appearance") === "3d"
-      ? "3d"
-      : "2d";
-  } catch {
-    return "2d";
-  }
-});
+    try {
+      return localStorage.getItem("shift-planner-appearance") === "3d"
+        ? "3d"
+        : "2d";
+    } catch {
+      return "2d";
+    }
+  });
   const [isClearingAll, setIsClearingAll] = useState(false);
   const [clearAllMessage, setClearAllMessage] = useState("");
   const [clearDialogError, setClearDialogError] = useState("");
@@ -280,18 +279,14 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
-  document.documentElement.setAttribute(
-    "data-appearance",
-    appearance
-  );
+    document.documentElement.setAttribute("data-appearance", appearance);
 
-  try {
-    localStorage.setItem("shift-planner-appearance", appearance);
-  } catch {
-    // Appearance still works if browser storage is unavailable.
-  }
-}, [appearance]);
-
+    try {
+      localStorage.setItem("shift-planner-appearance", appearance);
+    } catch {
+      // Appearance still works if browser storage is unavailable.
+    }
+  }, [appearance]);
 
   useEffect(() => {
     rowsRef.current = rows;
@@ -396,7 +391,7 @@ export default function App() {
     }
   };
 
-  const handleFiles = (files) => {
+  const handleFiles = (files, notify) => {
     Array.from(files).forEach((file) => {
       Papa.parse(file, {
         header: true,
@@ -423,9 +418,7 @@ export default function App() {
           if (!consignmentKey || !dispatchKey) {
             console.error("CSV headers found:", headers);
 
-            setDuplicateMessage(
-              "CSV could not find Consignment or Dispatch time column"
-            );
+            notify?.("CSV could not find Consignment or Dispatch time column");
 
             return;
           }
@@ -475,7 +468,7 @@ export default function App() {
           });
 
           if (duplicatesDetected > 0) {
-            setDuplicateMessage(
+            notify?.(
               `${duplicatesDetected} duplicate line${
                 duplicatesDetected > 1 ? "s" : ""
               } ignored`
@@ -499,23 +492,22 @@ export default function App() {
 
         error: (error) => {
           console.error("CSV parsing error:", error);
-          setDuplicateMessage("Could not read CSV file");
+          notify?.("Could not read CSV file");
         },
       });
     });
   };
 
-  const onFileChange = (event) => {
+  const onFileChange = (event, notify) => {
     if (!event.target.files.length) return;
 
-    handleFiles(event.target.files);
+    handleFiles(event.target.files, notify);
     event.target.value = null;
   };
 
   const clearAll = async () => {
     try {
       await setDoc(DATADOC, { rows: [] }, { merge: true });
-      setDuplicateMessage("");
     } catch (error) {
       console.error("Clear uploaded data error:", error);
     }
@@ -565,7 +557,6 @@ export default function App() {
         freezer: 0,
         total: 0,
       });
-      setDuplicateMessage("");
       setSlideIndex(0);
 
       clearDialogRef.current?.close();
@@ -611,7 +602,6 @@ export default function App() {
 
     try {
       await setDoc(DATADOC, { rows: updatedRows }, { merge: true });
-      setDuplicateMessage("");
     } catch (error) {
       console.error("Delete route data error:", error);
     }
@@ -631,7 +621,6 @@ export default function App() {
 
     try {
       await setDoc(DATADOC, { rows: updatedRows }, { merge: true });
-      setDuplicateMessage("");
       return true;
     } catch (error) {
       console.error("Delete consignment error:", error);
@@ -756,7 +745,6 @@ export default function App() {
                         rows={rows}
                         routesInfo={routesInfo}
                         grandTotals={grandTotals}
-                        duplicateMessage={duplicateMessage}
                         onFileChange={onFileChange}
                         clearAll={clearAll}
                         deleteRoutesFromRoute={deleteRoutesFromRoute}

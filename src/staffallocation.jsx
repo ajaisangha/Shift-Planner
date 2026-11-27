@@ -3,6 +3,7 @@ import { doc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import "./App.css";
 import "./staffallocation.css";
+import ToastPortal from "./ToastPortal";
 
 const SHIFT_DOC = doc(db, "totes", "shiftEOS");
 const PICK_DOC = doc(db, "totes", "pickCalculator");
@@ -460,7 +461,7 @@ export default function StaffAllocation() {
   </div>
 </div>
       </div>
-      {toast && <div className="toast-notification-center">{toast}</div>}
+            {toast && <ToastPortal message={toast} />}
     </section>
   );
 }

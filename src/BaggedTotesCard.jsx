@@ -3,6 +3,7 @@ import { db } from "./firebase";
 import { doc, setDoc, onSnapshot } from "firebase/firestore";
 import "./App.css";
 import "./BaggedTotes.css";
+import ToastPortal from "./ToastPortal";
 
 const BAGGED_TOTES_DOC = doc(db, "totes", "baggedTotes");
 
@@ -298,7 +299,7 @@ export default function BaggedTotesCard({ grandTotals }) {
         </div>
       </div>
 
-      {toast.show && <div className="toast-notification-center">{toast.message}</div>}
+            {toast.show && <ToastPortal message={toast.message} />}
     </section>
   );
 }

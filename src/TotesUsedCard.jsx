@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { doc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import "./App.css";
 import "./totesused.css";
+import ToastPortal from "./ToastPortal";
 
 const TOTESDOC = doc(db, "totes", "totesUsed");
 
@@ -11,11 +12,21 @@ function parseNumber(value) {
   return Number.isNaN(n) ? 0 : n;
 }
 
+const routeOrder = [
+  { key: "Ottawa Spoke", short: "Ottawa" },
+  { key: "2:30 Etobicoke Spoke", short: "2:30 ES" },
+  { key: "3:30 Etobicoke Spoke", short: "3:30 ES" },
+  { key: "4:40 Etobicoke Spoke", short: "4:40 ES" },
+  { key: "Vans", short: "Vans" },
+  { key: "8:00 Etobicoke Spoke", short: "8:00 ES" },
+  { key: "9:30 Etobicoke Spoke", short: "9:30 ES" },
+  { key: "10:00 Etobicoke Spoke", short: "10:00 ES" },
+];
+
 export default function TotesUsedCard({
   rows,
   routesInfo,
   grandTotals,
-  duplicateMessage,
   onFileChange,
   clearAll,
   deleteRoutesFromRoute,
@@ -33,19 +44,37 @@ export default function TotesUsedCard({
   const [showOvercapacityModal, setShowOvercapacityModal] = useState(false);
 
   const [toast, setToast] = useState({ show: false, message: "" });
+  const toastTimerRef = useRef(null);
 
   const [showRouteDeleteModal, setShowRouteDeleteModal] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [routesToDelete, setRoutesToDelete] = useState("");
 
-  const [showConsignmentDeleteModal, setShowConsignmentDeleteModal] = useState(false);
+  const [showConsignmentDeleteModal, setShowConsignmentDeleteModal] =
+    useState(false);
   const [consignmentSearch, setConsignmentSearch] = useState("");
   const [selectedConsignment, setSelectedConsignment] = useState(null);
 
   const showToast = (message) => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
+
     setToast({ show: true, message });
-    setTimeout(() => setToast({ show: false, message: "" }), 2200);
+
+    toastTimerRef.current = setTimeout(() => {
+      setToast({ show: false, message: "" });
+      toastTimerRef.current = null;
+    }, 2200);
   };
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const unsub = onSnapshot(TOTESDOC, (snap) => {
@@ -71,19 +100,23 @@ export default function TotesUsedCard({
       parseNumber(dolliesReceived);
 
     setDolliesResult(result);
-
-    await setDoc(
-      TOTESDOC,
-      {
-        dolliesReceived,
-        dolliesUsed,
-        dolliesEmpty,
-        dolliesResult: result,
-      },
-      { merge: true }
-    );
-
     showToast("Dollies saved");
+
+    try {
+      await setDoc(
+        TOTESDOC,
+        {
+          dolliesReceived,
+          dolliesUsed,
+          dolliesEmpty,
+          dolliesResult: result,
+        },
+        { merge: true }
+      );
+    } catch (error) {
+      console.error("Dollies save error:", error);
+      showToast("Could not save dollies");
+    }
   };
 
   const clearDollies = async () => {
@@ -91,72 +124,74 @@ export default function TotesUsedCard({
     setDolliesUsed("");
     setDolliesEmpty("");
     setDolliesResult(null);
-
-    await setDoc(
-      TOTESDOC,
-      {
-        dolliesReceived: "",
-        dolliesUsed: "",
-        dolliesEmpty: "",
-        dolliesResult: null,
-      },
-      { merge: true }
-    );
-
     showToast("Dollies cleared");
+
+    try {
+      await setDoc(
+        TOTESDOC,
+        {
+          dolliesReceived: "",
+          dolliesUsed: "",
+          dolliesEmpty: "",
+          dolliesResult: null,
+        },
+        { merge: true }
+      );
+    } catch (error) {
+      console.error("Dollies clear error:", error);
+      showToast("Could not clear dollies");
+    }
   };
 
   const calculateDolliesDifference = async () => {
     const result = parseNumber(currentDollies) - parseNumber(dolliesNeeded);
 
     setDolliesDifference(result);
-
-    await setDoc(
-      TOTESDOC,
-      {
-        currentDollies,
-        dolliesNeeded,
-        dolliesDifference: result,
-      },
-      { merge: true }
-    );
-
     showToast("Dollies difference saved");
+
+    try {
+      await setDoc(
+        TOTESDOC,
+        {
+          currentDollies,
+          dolliesNeeded,
+          dolliesDifference: result,
+        },
+        { merge: true }
+      );
+    } catch (error) {
+      console.error("Dollies difference save error:", error);
+      showToast("Could not save dollies difference");
+    }
   };
 
   const clearDolliesDifference = async () => {
     setCurrentDollies("");
     setDolliesNeeded("");
     setDolliesDifference(null);
-
-    await setDoc(
-      TOTESDOC,
-      {
-        currentDollies: "",
-        dolliesNeeded: "",
-        dolliesDifference: null,
-      },
-      { merge: true }
-    );
-
     showToast("Dollies difference cleared");
-  };
 
-const routeOrder = [
-  { key: "Ottawa Spoke", short: "Ottawa" },
-  { key: "2:30 Etobicoke Spoke", short: "2:30 ES" },
-  { key: "3:30 Etobicoke Spoke", short: "3:30 ES" },
-  { key: "4:40 Etobicoke Spoke", short: "4:40 ES" },
-  { key: "Vans", short: "Vans" },
-  { key: "8:00 Etobicoke Spoke", short: "8:00 ES" },
-  { key: "9:30 Etobicoke Spoke", short: "9:30 ES" },
-  { key: "10:00 Etobicoke Spoke", short: "10:00 ES" },
-];
+    try {
+      await setDoc(
+        TOTESDOC,
+        {
+          currentDollies: "",
+          dolliesNeeded: "",
+          dolliesDifference: null,
+        },
+        { merge: true }
+      );
+    } catch (error) {
+      console.error("Dollies difference clear error:", error);
+      showToast("Could not clear dollies difference");
+    }
+  };
 
   const getRowOvercapacity = (row) => {
     const ambientOver = (row.ambient || 0) > 40 ? (row.ambient || 0) - 40 : 0;
     const chillFreezerTotal = (row.chilled || 0) + (row.freezer || 0);
-    const chillFreezerOver = chillFreezerTotal > 40 ? chillFreezerTotal - 40 : 0;
+    const chillFreezerOver =
+      chillFreezerTotal > 40 ? chillFreezerTotal - 40 : 0;
 
     return {
       ambient: ambientOver,
@@ -181,12 +216,18 @@ const routeOrder = [
       .sort((a, b) => b.totalOver - a.totalOver);
   }, [rows]);
 
-  const totalOvercapacity = overcapacityRows.reduce((sum, row) => sum + row.totalOver, 0);
+  const totalOvercapacity = overcapacityRows.reduce(
+    (sum, row) => sum + row.totalOver,
+    0
+  );
 
   const routeSummary = routeOrder.map((route) => {
     const routeRows = routesInfo[route.key]?.rows || [];
     const count = routeRows.length;
-    const overcapacity = routeRows.reduce((sum, row) => sum + getRowOvercapacity(row).total, 0);
+    const overcapacity = routeRows.reduce(
+      (sum, row) => sum + getRowOvercapacity(row).total,
+      0
+    );
     const isVan = route.key === "Vans";
     return { ...route, count, overcapacity, isVan };
   });
@@ -210,91 +251,93 @@ const routeOrder = [
   };
 
   const openRouteDeleteModal = (route) => {
-  if (!route.count) return;
+    if (!route.count) return;
 
-  setSelectedRoute(route);
-  setRoutesToDelete("");
-  setShowRouteDeleteModal(true);
-};
+    setSelectedRoute(route);
+    setRoutesToDelete("");
+    setShowRouteDeleteModal(true);
+  };
 
-const closeRouteDeleteModal = () => {
-  setShowRouteDeleteModal(false);
-  setSelectedRoute(null);
-  setRoutesToDelete("");
-};
+  const closeRouteDeleteModal = () => {
+    setShowRouteDeleteModal(false);
+    setSelectedRoute(null);
+    setRoutesToDelete("");
+  };
 
-const handleDeleteSomeRoutes = async () => {
-  if (!selectedRoute) return;
+  const handleDeleteSomeRoutes = async () => {
+    if (!selectedRoute) return;
 
-  const amount = parseInt(routesToDelete, 10);
+    const amount = parseInt(routesToDelete, 10);
 
-  if (!Number.isInteger(amount) || amount < 1) {
-    showToast("Enter at least 1 route to delete");
-    return;
-  }
+    if (!Number.isInteger(amount) || amount < 1) {
+      showToast("Enter at least 1 route to delete");
+      return;
+    }
 
-  if (amount > selectedRoute.count) {
-    showToast(`Only ${selectedRoute.count} route(s) available`);
-    return;
-  }
+    if (amount > selectedRoute.count) {
+      showToast(`Only ${selectedRoute.count} route(s) available`);
+      return;
+    }
 
-  await deleteRoutesFromRoute(selectedRoute.key, amount, false);
-  showToast(
-    `${amount} ${selectedRoute.short} route${amount === 1 ? "" : "s"} deleted`
-  );
-  closeRouteDeleteModal();
-};
+    await deleteRoutesFromRoute(selectedRoute.key, amount, false);
+    showToast(
+      `${amount} ${selectedRoute.short} route${amount === 1 ? "" : "s"} deleted`
+    );
+    closeRouteDeleteModal();
+  };
 
-const handleDeleteAllRoutes = async () => {
-  if (!selectedRoute) return;
+  const handleDeleteAllRoutes = async () => {
+    if (!selectedRoute) return;
 
-  await deleteRoutesFromRoute(selectedRoute.key, selectedRoute.count, true);
-  showToast(`All ${selectedRoute.short} routes deleted`);
-  closeRouteDeleteModal();
-};
+    await deleteRoutesFromRoute(selectedRoute.key, selectedRoute.count, true);
+    showToast(`All ${selectedRoute.short} routes deleted`);
+    closeRouteDeleteModal();
+  };
 
-const openConsignmentDeleteModal = () => {
-  setShowRouteDeleteModal(false);
-  setConsignmentSearch("");
-  setSelectedConsignment(null);
-  setShowConsignmentDeleteModal(true);
-};
+  const openConsignmentDeleteModal = () => {
+    setShowRouteDeleteModal(false);
+    setConsignmentSearch("");
+    setSelectedConsignment(null);
+    setShowConsignmentDeleteModal(true);
+  };
 
-const closeConsignmentDeleteModal = () => {
-  setShowConsignmentDeleteModal(false);
-  setConsignmentSearch("");
-  setSelectedConsignment(null);
-};
+  const closeConsignmentDeleteModal = () => {
+    setShowConsignmentDeleteModal(false);
+    setConsignmentSearch("");
+    setSelectedConsignment(null);
+  };
 
-const normalizedConsignmentSearch = consignmentSearch.trim().toLowerCase();
+  const normalizedConsignmentSearch = consignmentSearch.trim().toLowerCase();
 
-const consignmentMatches = normalizedConsignmentSearch
-  ? rows
-      .filter((row) =>
-        String(row.consignment || "")
-          .trim()
-          .toLowerCase()
-          .includes(normalizedConsignmentSearch)
-      )
-      .slice(0, 20)
-  : [];
+  const consignmentMatches = normalizedConsignmentSearch
+    ? rows
+        .filter((row) =>
+          String(row.consignment || "")
+            .trim()
+            .toLowerCase()
+            .includes(normalizedConsignmentSearch)
+        )
+        .slice(0, 20)
+    : [];
 
-const handleDeleteConsignment = async () => {
-  if (!selectedConsignment) {
-    showToast("Select a consignment to delete");
-    return;
-  }
+  const handleDeleteConsignment = async () => {
+    if (!selectedConsignment) {
+      showToast("Select a consignment to delete");
+      return;
+    }
 
-  const wasDeleted = await deleteConsignment(selectedConsignment.consignment);
+    const wasDeleted = await deleteConsignment(
+      selectedConsignment.consignment
+    );
 
-  if (!wasDeleted) {
-    showToast("Consignment was not found or could not be deleted");
-    return;
-  }
+    if (!wasDeleted) {
+      showToast("Consignment was not found or could not be deleted");
+      return;
+    }
 
-  showToast(`Consignment ${selectedConsignment.consignment} deleted`);
-  closeConsignmentDeleteModal();
-};
+    showToast(`Consignment ${selectedConsignment.consignment} deleted`);
+    closeConsignmentDeleteModal();
+  };
 
   return (
     <section className="data-card totes-used-card">
@@ -305,13 +348,20 @@ const handleDeleteConsignment = async () => {
           <h3>Uploaded Data</h3>
 
           <div className="file-controls">
-            <input type="file" accept=".csv" multiple onChange={onFileChange} />
-            <button onClick={handleClearUpload} className="clear-btn" disabled={rows.length === 0}>
+            <input
+              type="file"
+              accept=".csv"
+              multiple
+              onChange={(e) => onFileChange(e, showToast)}
+            />
+            <button
+              onClick={handleClearUpload}
+              className="clear-btn"
+              disabled={rows.length === 0}
+            >
               Clear uploaded data
             </button>
           </div>
-
-          {duplicateMessage && <p className="duplicate-warning">{duplicateMessage}</p>}
 
           {Object.keys(routesInfo).length === 0 ? (
             <p className="no-data">No data available yet.</p>
@@ -328,130 +378,128 @@ const handleDeleteConsignment = async () => {
               <h3 style={{ marginBottom: "14px" }}>Consignment Summary</h3>
 
               <div
-  style={{
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
-    gap: "12px",
-  }}
->
-  {routeSummary.map((item) => (
-    <button
-      key={item.key}
-      type="button"
-      className="route-summary-card"
-      onClick={() => openRouteDeleteModal(item)}
-      disabled={item.count === 0}
-      title={
-        item.count > 0
-          ? `Click to delete uploaded ${item.short} routes`
-          : `No uploaded routes for ${item.short}`
-      }
-      style={{
-        background: "#f8fbff",
-        border: "1px solid #dbe7f6",
-        borderRadius: "12px",
-        padding: "12px 10px",
-        textAlign: "center",
-        cursor: item.count > 0 ? "pointer" : "default",
-      }}
-    >
-      <div
-        style={{
-          fontSize: "13px",
-          fontWeight: 700,
-          color: "#123c73",
-          lineHeight: 1.3,
-          minHeight: "34px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {item.short}
-      </div>
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
+                  gap: "12px",
+                }}
+              >
+                {routeSummary.map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className="route-summary-card"
+                    onClick={() => openRouteDeleteModal(item)}
+                    disabled={item.count === 0}
+                    title={
+                      item.count > 0
+                        ? `Click to delete uploaded ${item.short} routes`
+                        : `No uploaded routes for ${item.short}`
+                    }
+                    style={{
+                      background: "#f8fbff",
+                      border: "1px solid #dbe7f6",
+                      borderRadius: "12px",
+                      padding: "12px 10px",
+                      textAlign: "center",
+                      cursor: item.count > 0 ? "pointer" : "default",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: 700,
+                        color: "#123c73",
+                        lineHeight: 1.3,
+                        minHeight: "34px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {item.short}
+                    </div>
 
-      <div
-        style={{
-          fontSize: "28px",
-          fontWeight: 800,
-          color: "#007bff",
-          lineHeight: 1.1,
-          marginTop: "8px",
-        }}
-      >
-        {item.count}
-      </div>
+                    <div
+                      style={{
+                        fontSize: "28px",
+                        fontWeight: 800,
+                        color: "#007bff",
+                        lineHeight: 1.1,
+                        marginTop: "8px",
+                      }}
+                    >
+                      {item.count}
+                    </div>
 
-      <div
-        style={{
-          fontSize: "12px",
-          color: "#5b6472",
-          marginTop: "4px",
-        }}
-      >
-        Routes
-      </div>
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        color: "#5b6472",
+                        marginTop: "4px",
+                      }}
+                    >
+                      Routes
+                    </div>
 
-      <div
-        style={{
-          fontSize: "12px",
-          color: item.overcapacity > 0 ? "#d9534f" : "#5b6472",
-          fontWeight: 700,
-          marginTop: "6px",
-        }}
-      >
-        OC: {item.overcapacity}
-      </div>
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        color: item.overcapacity > 0 ? "#d9534f" : "#5b6472",
+                        fontWeight: 700,
+                        marginTop: "6px",
+                      }}
+                    >
+                      OC: {item.overcapacity}
+                    </div>
+                  </button>
+                ))}
+              </div>
 
-      
-    </button>
-  ))}
-</div>
+              <button
+                type="button"
+                className="overcapacity-summary-btn"
+                onClick={() => setShowOvercapacityModal(true)}
+                disabled={overcapacityRows.length === 0}
+                style={{
+                  marginTop: "14px",
+                  background: "#edf5ff",
+                  border: "1px solid #cfe0f8",
+                  borderRadius: "12px",
+                  padding: "12px 14px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "12px",
+                  flexWrap: "wrap",
+                  width: "100%",
+                  cursor: overcapacityRows.length > 0 ? "pointer" : "default",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    color: "#123c73",
+                  }}
+                >
+                  Total Overcapacity Totes
+                </div>
 
-<button
-  type="button"
-  className="overcapacity-summary-btn"
-  onClick={() => setShowOvercapacityModal(true)}
-  disabled={overcapacityRows.length === 0}
-  style={{
-    marginTop: "14px",
-    background: "#edf5ff",
-    border: "1px solid #cfe0f8",
-    borderRadius: "12px",
-    padding: "12px 14px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "12px",
-    flexWrap: "wrap",
-    width: "100%",
-    cursor: overcapacityRows.length > 0 ? "pointer" : "default",
-  }}
->
-  <div
-    style={{
-      fontSize: "14px",
-      fontWeight: 700,
-      color: "#123c73",
-    }}
-  >
-    Total Overcapacity Totes
-  </div>
-
-  <div
-    style={{
-      fontSize: "26px",
-      fontWeight: 900,
-      color: totalOvercapacity > 0 ? "#d9534f" : "#007bff",
-      lineHeight: 1,
-    }}
-  >
-    {totalOvercapacity}
-  </div>
-</button>
-</div>
-)}
-</div>
+                <div
+                  style={{
+                    fontSize: "26px",
+                    fontWeight: 900,
+                    color: totalOvercapacity > 0 ? "#d9534f" : "#007bff",
+                    lineHeight: 1,
+                  }}
+                >
+                  {totalOvercapacity}
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
 
         <div className="subcard">
           <h3>Dollies</h3>
@@ -473,7 +521,14 @@ const handleDeleteConsignment = async () => {
                 padding: "12px",
               }}
             >
-              <div style={{ fontWeight: 700, marginBottom: "10px", color: "#123c73", fontSize: "14px" }}>
+              <div
+                style={{
+                  fontWeight: 700,
+                  marginBottom: "10px",
+                  color: "#123c73",
+                  fontSize: "14px",
+                }}
+              >
                 Dollies
               </div>
 
@@ -517,11 +572,17 @@ const handleDeleteConsignment = async () => {
 
               {dolliesResult !== null && (
                 <div className="bagged-result" style={{ marginTop: 20 }}>
-                  <div className="result-line" style={{ fontWeight: "bold", fontSize: 18 }}>
+                  <div
+                    className="result-line"
+                    style={{ fontWeight: "bold", fontSize: 18 }}
+                  >
                     <span>Dollies Dekitted</span>
                     <span style={{ marginLeft: 8 }}>{dolliesResult}</span>
                   </div>
-                  <div className="result-line" style={{ fontWeight: "bold", fontSize: 18 }}>
+                  <div
+                    className="result-line"
+                    style={{ fontWeight: "bold", fontSize: 18 }}
+                  >
                     <span>Totes Dekitted</span>
                     <span style={{ marginLeft: 8 }}>{dolliesResult * 20}</span>
                   </div>
@@ -541,7 +602,14 @@ const handleDeleteConsignment = async () => {
                 padding: "12px",
               }}
             >
-              <div style={{ fontWeight: 700, marginBottom: "10px", color: "#123c73", fontSize: "14px" }}>
+              <div
+                style={{
+                  fontWeight: 700,
+                  marginBottom: "10px",
+                  color: "#123c73",
+                  fontSize: "14px",
+                }}
+              >
                 Dollies Difference
               </div>
 
@@ -566,7 +634,10 @@ const handleDeleteConsignment = async () => {
               </div>
 
               <div className="center-buttons">
-                <button className="calculate-btn" onClick={calculateDolliesDifference}>
+                <button
+                  className="calculate-btn"
+                  onClick={calculateDolliesDifference}
+                >
                   Calculate
                 </button>
                 <button className="clear-btn" onClick={clearDolliesDifference}>
@@ -576,7 +647,10 @@ const handleDeleteConsignment = async () => {
 
               {dolliesDifference !== null && (
                 <div className="bagged-result" style={{ marginTop: 20 }}>
-                  <div className="result-line" style={{ fontWeight: "bold", fontSize: 18 }}>
+                  <div
+                    className="result-line"
+                    style={{ fontWeight: "bold", fontSize: 18 }}
+                  >
                     <span>Difference</span>
                     <span style={{ marginLeft: 8 }}>{dolliesDifference}</span>
                   </div>
@@ -605,10 +679,14 @@ const handleDeleteConsignment = async () => {
                 padding: "14px",
               }}
             >
-              <div style={{ fontSize: "13px", color: "#5b6472", fontWeight: 600 }}>
+              <div
+                style={{ fontSize: "13px", color: "#5b6472", fontWeight: 600 }}
+              >
                 Total Spoke Routes
               </div>
-              <div style={{ fontSize: "28px", fontWeight: 800, marginTop: "6px" }}>
+              <div
+                style={{ fontSize: "28px", fontWeight: 800, marginTop: "6px" }}
+              >
                 {totalSpokeRoutes}
               </div>
             </div>
@@ -621,10 +699,14 @@ const handleDeleteConsignment = async () => {
                 padding: "14px",
               }}
             >
-              <div style={{ fontSize: "13px", color: "#5b6472", fontWeight: 600 }}>
+              <div
+                style={{ fontSize: "13px", color: "#5b6472", fontWeight: 600 }}
+              >
                 Total Spoke Frames
               </div>
-              <div style={{ fontSize: "28px", fontWeight: 800, marginTop: "6px" }}>
+              <div
+                style={{ fontSize: "28px", fontWeight: 800, marginTop: "6px" }}
+              >
                 {totalSpokeFrames}
               </div>
             </div>
@@ -637,10 +719,14 @@ const handleDeleteConsignment = async () => {
                 padding: "14px",
               }}
             >
-              <div style={{ fontSize: "13px", color: "#5b6472", fontWeight: 600 }}>
+              <div
+                style={{ fontSize: "13px", color: "#5b6472", fontWeight: 600 }}
+              >
                 Total Vans
               </div>
-              <div style={{ fontSize: "28px", fontWeight: 800, marginTop: "6px" }}>
+              <div
+                style={{ fontSize: "28px", fontWeight: 800, marginTop: "6px" }}
+              >
                 {totalVanRoutes}
               </div>
             </div>
@@ -653,10 +739,14 @@ const handleDeleteConsignment = async () => {
                 padding: "14px",
               }}
             >
-              <div style={{ fontSize: "13px", color: "#5b6472", fontWeight: 600 }}>
+              <div
+                style={{ fontSize: "13px", color: "#5b6472", fontWeight: 600 }}
+              >
                 Total Van Frames
               </div>
-              <div style={{ fontSize: "28px", fontWeight: 800, marginTop: "6px" }}>
+              <div
+                style={{ fontSize: "28px", fontWeight: 800, marginTop: "6px" }}
+              >
                 {totalVanFrames}
               </div>
             </div>
@@ -669,10 +759,14 @@ const handleDeleteConsignment = async () => {
                 padding: "14px",
               }}
             >
-              <div style={{ fontSize: "13px", color: "#5b6472", fontWeight: 600 }}>
+              <div
+                style={{ fontSize: "13px", color: "#5b6472", fontWeight: 600 }}
+              >
                 Total Routes
               </div>
-              <div style={{ fontSize: "28px", fontWeight: 800, marginTop: "6px" }}>
+              <div
+                style={{ fontSize: "28px", fontWeight: 800, marginTop: "6px" }}
+              >
                 {totalRoutes}
               </div>
             </div>
@@ -754,257 +848,267 @@ const handleDeleteConsignment = async () => {
         </div>
       </div>
 
-{showOvercapacityModal && (
-  <div
-    className="totes-modal-overlay"
-    onClick={() => setShowOvercapacityModal(false)}
-  >
-    <div
-      className="totes-modal"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <div className="totes-modal-header">
-        <div>
-          <h3>Overcapacity Route Details</h3>
-          <p>Total Overcapacity Totes: {totalOvercapacity}</p>
-        </div>
-
-        <button
-          type="button"
-          className="totes-modal-close"
+      {showOvercapacityModal && (
+        <div
+          className="totes-modal-overlay"
           onClick={() => setShowOvercapacityModal(false)}
-          aria-label="Close overcapacity modal"
-        />
-      </div>
+        >
+          <div className="totes-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="totes-modal-header">
+              <div>
+                <h3>Overcapacity Route Details</h3>
+                <p>Total Overcapacity Totes: {totalOvercapacity}</p>
+              </div>
 
-      <div className="totes-modal-body">
-        {overcapacityRows.length === 0 ? (
-          <p className="no-data">No overcapacity routes found.</p>
-        ) : (
-          <div className="totes-modal-table-wrap">
-            <table className="totes-modal-table">
-              <thead>
-                <tr>
-                  <th>Route</th>
-                  <th>Route ID</th>
-                  <th>Consignment</th>
-                  <th>Amb Totes</th>
-                  <th>Chill + Freezer</th>
-                  <th>Overcapacity</th>
-                </tr>
-              </thead>
+              <button
+                type="button"
+                className="totes-modal-close"
+                onClick={() => setShowOvercapacityModal(false)}
+                aria-label="Close overcapacity modal"
+              />
+            </div>
 
-              <tbody>
-                {overcapacityRows.map((row) => (
-                  <tr key={row.consignment}>
-                    <td>{row.route}</td>
-                    <td>{row.shipment || "-"}</td>
-                    <td>{row.consignment}</td>
-                    <td>{row.ambient || 0}</td>
-                    <td>{row.chillFreezerCombined}</td>
-                    <td>{row.totalOver}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="totes-modal-body">
+              {overcapacityRows.length === 0 ? (
+                <p className="no-data">No overcapacity routes found.</p>
+              ) : (
+                <div className="totes-modal-table-wrap">
+                  <table className="totes-modal-table">
+                    <thead>
+                      <tr>
+                        <th>Route</th>
+                        <th>Route ID</th>
+                        <th>Consignment</th>
+                        <th>Amb Totes</th>
+                        <th>Chill + Freezer</th>
+                        <th>Overcapacity</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {overcapacityRows.map((row) => (
+                        <tr key={row.consignment}>
+                          <td>{row.route}</td>
+                          <td>{row.shipment || "-"}</td>
+                          <td>{row.consignment}</td>
+                          <td>{row.ambient || 0}</td>
+                          <td>{row.chillFreezerCombined}</td>
+                          <td>{row.totalOver}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
-    </div>
-  </div>
-)}
+        </div>
+      )}
 
       {showRouteDeleteModal && selectedRoute && (
-  <div className="totes-modal-overlay" onClick={closeRouteDeleteModal}>
-    <div
-      className="totes-modal route-delete-modal"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <div className="totes-modal-header">
-        <div>
-          <h3>Manage {selectedRoute.short} Routes</h3>
-          <p>
-            {selectedRoute.count} uploaded route
-            {selectedRoute.count === 1 ? "" : "s"} available
-          </p>
-        </div>
-
-        <button
-          type="button"
-          className="totes-modal-close"
-          onClick={closeRouteDeleteModal}
-          aria-label="Close route deletion modal"
-        />
-      </div>
-
-      <div className="totes-modal-body route-delete-modal-body">
-        <p className="route-delete-message">
-          Enter how many routes you want to remove. This removes the most
-          recently uploaded consignments for{" "}
-          <strong>{selectedRoute.short}</strong>.
-        </p>
-
-        <label className="route-delete-label" htmlFor="routes-to-delete">
-          Number of routes to delete
-        </label>
-
-        <input
-          id="routes-to-delete"
-          className="route-delete-input"
-          type="number"
-          min="1"
-          max={selectedRoute.count}
-          value={routesToDelete}
-          onChange={(e) => setRoutesToDelete(e.target.value)}
-          placeholder={`1 - ${selectedRoute.count}`}
-        />
-
-        <div className="route-delete-actions">
-          <button
-            type="button"
-            className="calculate-btn"
-            onClick={handleDeleteSomeRoutes}
+        <div className="totes-modal-overlay" onClick={closeRouteDeleteModal}>
+          <div
+            className="totes-modal route-delete-modal"
+            onClick={(e) => e.stopPropagation()}
           >
-            Delete Selected Amount
-          </button>
+            <div className="totes-modal-header">
+              <div>
+                <h3>Manage {selectedRoute.short} Routes</h3>
+                <p>
+                  {selectedRoute.count} uploaded route
+                  {selectedRoute.count === 1 ? "" : "s"} available
+                </p>
+              </div>
 
-          <button
-            type="button"
-            className="clear-btn"
-            onClick={handleDeleteAllRoutes}
-          >
-            Delete All Routes
-          </button>
-        </div>
-
-        <div className="route-delete-divider">
-          <span>OR</span>
-        </div>
-
-        <button
-          type="button"
-          className="calculate-btn route-delete-search-btn"
-          onClick={openConsignmentDeleteModal}
-        >
-          Search by Consignment
-        </button>
-
-        <button
-          type="button"
-          className="route-delete-cancel"
-          onClick={closeRouteDeleteModal}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-{showConsignmentDeleteModal && (
-  <div className="totes-modal-overlay" onClick={closeConsignmentDeleteModal}>
-    <div
-      className="totes-modal route-delete-modal"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <div className="totes-modal-header">
-        <div>
-          <h3>Delete by Consignment</h3>
-          <p>Search uploaded data using the Consignment column.</p>
-        </div>
-
-        <button
-          type="button"
-          className="totes-modal-close"
-          onClick={closeConsignmentDeleteModal}
-          aria-label="Close consignment search modal"
-        />
-      </div>
-
-      <div className="totes-modal-body route-delete-modal-body">
-        <label className="route-delete-label" htmlFor="consignment-search">
-          Search consignment
-        </label>
-
-        <input
-          id="consignment-search"
-          className="route-delete-input consignment-search-input"
-          type="text"
-          value={consignmentSearch}
-          onChange={(e) => {
-            setConsignmentSearch(e.target.value);
-            setSelectedConsignment(null);
-          }}
-          placeholder="Enter consignment number"
-          autoFocus
-        />
-
-        {!normalizedConsignmentSearch && (
-          <p className="consignment-search-help">
-            Enter a full or partial consignment number to search.
-          </p>
-        )}
-
-        {normalizedConsignmentSearch && consignmentMatches.length === 0 && (
-          <p className="no-data consignment-search-help">
-            No matching consignments found.
-          </p>
-        )}
-
-        {consignmentMatches.length > 0 && (
-          <div className="consignment-results">
-            {consignmentMatches.map((row) => (
               <button
-                key={row.consignment}
                 type="button"
-                className={`consignment-result-row ${
-                  selectedConsignment?.consignment === row.consignment
-                    ? "selected"
-                    : ""
-                }`}
-                onClick={() => setSelectedConsignment(row)}
+                className="totes-modal-close"
+                onClick={closeRouteDeleteModal}
+                aria-label="Close route deletion modal"
+              />
+            </div>
+
+            <div className="totes-modal-body route-delete-modal-body">
+              <p className="route-delete-message">
+                Enter how many routes you want to remove. This removes the most
+                recently uploaded consignments for{" "}
+                <strong>{selectedRoute.short}</strong>.
+              </p>
+
+              <label
+                className="route-delete-label"
+                htmlFor="routes-to-delete"
               >
-                <span className="consignment-result-id">{row.consignment}</span>
-                <span className="consignment-result-route">
-                  {row.route || "Unknown route"}
-                </span>
+                Number of routes to delete
+              </label>
+
+              <input
+                id="routes-to-delete"
+                className="route-delete-input"
+                type="number"
+                min="1"
+                max={selectedRoute.count}
+                value={routesToDelete}
+                onChange={(e) => setRoutesToDelete(e.target.value)}
+                placeholder={`1 - ${selectedRoute.count}`}
+              />
+
+              <div className="route-delete-actions">
+                <button
+                  type="button"
+                  className="calculate-btn"
+                  onClick={handleDeleteSomeRoutes}
+                >
+                  Delete Selected Amount
+                </button>
+
+                <button
+                  type="button"
+                  className="clear-btn"
+                  onClick={handleDeleteAllRoutes}
+                >
+                  Delete All Routes
+                </button>
+              </div>
+
+              <div className="route-delete-divider">
+                <span>OR</span>
+              </div>
+
+              <button
+                type="button"
+                className="calculate-btn route-delete-search-btn"
+                onClick={openConsignmentDeleteModal}
+              >
+                Search by Consignment
               </button>
-            ))}
-          </div>
-        )}
 
-        {selectedConsignment && (
-          <div className="selected-consignment-info">
-            Selected: <strong>{selectedConsignment.consignment}</strong>
-            <br />
-            Route: <strong>{selectedConsignment.route || "Unknown"}</strong>
+              <button
+                type="button"
+                className="route-delete-cancel"
+                onClick={closeRouteDeleteModal}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
-        )}
-
-        <div className="route-delete-actions">
-          <button
-            type="button"
-            className="clear-btn"
-            onClick={handleDeleteConsignment}
-            disabled={!selectedConsignment}
-          >
-            Delete Selected Consignment
-          </button>
         </div>
+      )}
 
-        <button
-          type="button"
-          className="route-delete-cancel"
+      {showConsignmentDeleteModal && (
+        <div
+          className="totes-modal-overlay"
           onClick={closeConsignmentDeleteModal}
         >
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+          <div
+            className="totes-modal route-delete-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="totes-modal-header">
+              <div>
+                <h3>Delete by Consignment</h3>
+                <p>Search uploaded data using the Consignment column.</p>
+              </div>
 
-      {toast.show && <div className="toast-notification-center">{toast.message}</div>}
+              <button
+                type="button"
+                className="totes-modal-close"
+                onClick={closeConsignmentDeleteModal}
+                aria-label="Close consignment search modal"
+              />
+            </div>
+
+            <div className="totes-modal-body route-delete-modal-body">
+              <label
+                className="route-delete-label"
+                htmlFor="consignment-search"
+              >
+                Search consignment
+              </label>
+
+              <input
+                id="consignment-search"
+                className="route-delete-input consignment-search-input"
+                type="text"
+                value={consignmentSearch}
+                onChange={(e) => {
+                  setConsignmentSearch(e.target.value);
+                  setSelectedConsignment(null);
+                }}
+                placeholder="Enter consignment number"
+                autoFocus
+              />
+
+              {!normalizedConsignmentSearch && (
+                <p className="consignment-search-help">
+                  Enter a full or partial consignment number to search.
+                </p>
+              )}
+
+              {normalizedConsignmentSearch &&
+                consignmentMatches.length === 0 && (
+                  <p className="no-data consignment-search-help">
+                    No matching consignments found.
+                  </p>
+                )}
+
+              {consignmentMatches.length > 0 && (
+                <div className="consignment-results">
+                  {consignmentMatches.map((row) => (
+                    <button
+                      key={row.consignment}
+                      type="button"
+                      className={`consignment-result-row ${
+                        selectedConsignment?.consignment === row.consignment
+                          ? "selected"
+                          : ""
+                      }`}
+                      onClick={() => setSelectedConsignment(row)}
+                    >
+                      <span className="consignment-result-id">
+                        {row.consignment}
+                      </span>
+                      <span className="consignment-result-route">
+                        {row.route || "Unknown route"}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {selectedConsignment && (
+                <div className="selected-consignment-info">
+                  Selected: <strong>{selectedConsignment.consignment}</strong>
+                  <br />
+                  Route:{" "}
+                  <strong>{selectedConsignment.route || "Unknown"}</strong>
+                </div>
+              )}
+
+              <div className="route-delete-actions">
+                <button
+                  type="button"
+                  className="clear-btn"
+                  onClick={handleDeleteConsignment}
+                  disabled={!selectedConsignment}
+                >
+                  Delete Selected Consignment
+                </button>
+              </div>
+
+              <button
+                type="button"
+                className="route-delete-cancel"
+                onClick={closeConsignmentDeleteModal}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast.show && <ToastPortal message={toast.message} />}
     </section>
   );
 }

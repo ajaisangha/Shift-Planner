@@ -3,6 +3,7 @@ import { db } from "./firebase";
 import { doc, onSnapshot, setDoc } from "firebase/firestore";
 import "./App.css";
 import "./ShiftEOS.css";
+import ToastPortal from "./ToastPortal";
 
 const SHIFT_EOS_DOC = doc(db, "totes", "shiftEOS");
 
@@ -325,9 +326,7 @@ export default function ShiftEOSCard() {
         </div>
       </div>
 
-      {toast.show && (
-        <div className="toast-notification-center">{toast.message}</div>
-      )}
+      {toast.show && <ToastPortal message={toast.message} />}
     </section>
   );
 }
