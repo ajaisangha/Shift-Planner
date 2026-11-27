@@ -13,6 +13,7 @@ import BarcodeCard from "./Barcode";
 import StaffAllocation from "./staffallocation";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
+import { initFx3d } from "./fx3d";
 
 const DATADOC = doc(db, "totes", "data");
 
@@ -29,7 +30,14 @@ const CLEAR_DOCUMENTS = [
   doc(db, "totes", "baggedTotes"),
 ];
 
-function Header({ theme, setTheme, appearance, setAppearance }) {
+function Header({
+  theme,
+  setTheme,
+  appearance,
+  setAppearance,
+  underwater,
+  setUnderwater,
+}) {
   const themeOptions = [
     { name: "blue", color: "#4a90e2" },
     { name: "red", color: "#d9534f" },
@@ -43,6 +51,17 @@ function Header({ theme, setTheme, appearance, setAppearance }) {
       <h1 className="header-title">Shift Planner</h1>
 
       <div className="header-controls">
+        {appearance === "3d" && (
+          <label className="water-toggle" title="Turn the underwater effect on or off">
+            <input
+              type="checkbox"
+              checked={underwater}
+              onChange={(event) => setUnderwater(event.target.checked)}
+            />
+            <span>Underwater</span>
+          </label>
+        )}
+
         <div
           className="appearance-toggle"
           role="group"
@@ -287,6 +306,39 @@ export default function App() {
       // Appearance still works if browser storage is unavailable.
     }
   }, [appearance]);
+
+    useEffect(() => {
+    if (appearance !== "3d") return undefined;
+
+    return initFx3d();
+  }, [appearance]);
+
+  const [underwater, setUnderwater] = useState(() => {
+    try {
+      return localStorage.getItem("shift-planner-underwater") === "on";
+    } catch {
+      return false;
+    }
+  });
+
+    useEffect(() => {
+    const root = document.documentElement;
+
+    if (underwater) {
+      root.setAttribute("data-water", "on");
+    } else {
+      root.removeAttribute("data-water");
+    }
+
+    try {
+      localStorage.setItem(
+        "shift-planner-underwater",
+        underwater ? "on" : "off"
+      );
+    } catch {
+      // The effect still works if browser storage is unavailable.
+    }
+  }, [underwater]);
 
   useEffect(() => {
     rowsRef.current = rows;
@@ -634,11 +686,13 @@ export default function App() {
 
   return (
     <div className="app-container">
-      <Header
+            <Header
         theme={theme}
         setTheme={setTheme}
         appearance={appearance}
         setAppearance={setAppearance}
+        underwater={underwater}
+        setUnderwater={setUnderwater}
       />
 
       <main className="app-main">
